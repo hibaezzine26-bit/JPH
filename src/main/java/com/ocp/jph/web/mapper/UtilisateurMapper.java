@@ -17,8 +17,8 @@ public class UtilisateurMapper {
         dto.setNom(utilisateur.getNom());
         dto.setPrenom(utilisateur.getPrenom());
         dto.setEmail(utilisateur.getEmail());
-        dto.setMotDePasse(utilisateur.getMotDePasse());
         dto.setRole(utilisateur.getRole());
+        dto.setMotDePasse(null); // ne pas exposer le mot de passe
         return dto;
     }
 

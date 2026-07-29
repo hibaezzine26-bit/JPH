@@ -65,6 +65,11 @@ public class ReportingMapper {
         reporting.setStatut(dto.getStatut());
         reporting.setResponsable(dto.getResponsable());
         reporting.setCommentaire(dto.getCommentaire());
+        if (dto.getUtilisateurId() != null) {
+            Utilisateur utilisateur = new Utilisateur();
+            utilisateur.setId(dto.getUtilisateurId());
+            reporting.setUtilisateur(utilisateur);
+        }
         reporting.setDateCreation(dto.getDateCreation());
         reporting.setDateModification(dto.getDateModification());
         return reporting;

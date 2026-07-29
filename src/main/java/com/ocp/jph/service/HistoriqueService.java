@@ -1,11 +1,12 @@
 package com.ocp.jph.service;
 
-import com.ocp.jph.domain.Historique;
-import com.ocp.jph.repository.HistoriqueRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.ocp.jph.domain.Historique;
+import com.ocp.jph.repository.HistoriqueRepository;
 
 @Service
 public class HistoriqueService {
@@ -21,6 +22,10 @@ public class HistoriqueService {
 
     public Optional<Historique> findById(Long id) {
         return repo.findById(id);
+    }
+
+    public List<Historique> findByReportingId(Long reportingId) {
+        return repo.findByReportingIdOrderByDateActionDesc(reportingId);
     }
 
     public Historique save(Historique h) {

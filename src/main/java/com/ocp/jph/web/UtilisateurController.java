@@ -1,6 +1,7 @@
 package com.ocp.jph.web;
 
 import java.net.URI;
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ocp.jph.domain.Utilisateur;
+import com.ocp.jph.dto.ChangePasswordDto;
 import com.ocp.jph.dto.UtilisateurDto;
 import com.ocp.jph.service.UtilisateurService;
 import com.ocp.jph.web.mapper.UtilisateurMapper;
@@ -45,6 +47,31 @@ public class UtilisateurController {
     public ResponseEntity<UtilisateurDto> create(@Valid @RequestBody UtilisateurDto u) {
         Utilisateur saved = service.save(mapper.toEntity(u));
         return ResponseEntity.created(URI.create("/api/utilisateurs/" + saved.getId())).body(mapper.toDto(saved));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UtilisateurDto> register(@Valid @RequestBody UtilisateurDto u) {
+        Utilisateur saved = service.register(mapper.toEntity(u));
+        return ResponseEntity.created(URI.create("/api/utilisateurs/" + saved.getId())).body(mapper.toDto(saved));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UtilisateurDto> me(Principal principal) {
+        return service.findByEmail(principal.getName()).map(mapper::toDto).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UtilisateurDto> updateMe(Principal principal, @Valid @RequestBody UtilisateurDto u) {
+        Utilisateur updated = mapper.toEntity(u);
+        Utilisateur saved = service.updateProfile(principal.getName(), updated);
+        return ResponseEntity.ok(mapper.toDto(saved));
+    }
+
+    @PutMapping("/me/mot-de-passe")
+    public ResponseEntity<UtilisateurDto> changePassword(Principal principal, @Valid @RequestBody ChangePasswordDto payload) {
+        Utilisateur utilisateur = service.findByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("Utilisateur not found"));
+        Utilisateur updated = service.changePassword(utilisateur.getId(), payload.getCurrentPassword(), payload.getNewPassword());
+        return ResponseEntity.ok(mapper.toDto(updated));
     }
 
     @PutMapping("/{id}")

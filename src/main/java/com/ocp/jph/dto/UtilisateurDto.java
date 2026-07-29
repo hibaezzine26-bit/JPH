@@ -20,7 +20,6 @@ public class UtilisateurDto {
     @NotBlank
     private String email;
 
-    @NotBlank
     private String motDePasse;
 
     @NotNull
