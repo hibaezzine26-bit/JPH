@@ -1,14 +1,31 @@
 package com.ocp.jph.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 
 import com.ocp.jph.domain.Historique;
@@ -16,6 +33,8 @@ import com.ocp.jph.domain.Reporting;
 import com.ocp.jph.domain.Responsable;
 import com.ocp.jph.domain.Secteur;
 import com.ocp.jph.domain.Statut;
+import com.ocp.jph.domain.Udm;
+import com.ocp.jph.dto.ImportResultDto;
 import com.ocp.jph.dto.ReportingStatisticsDto;
 import com.ocp.jph.repository.ReportingRepository;
 
@@ -31,22 +50,367 @@ public class ReportingService {
         return repo.findAll();
     }
 
-    public List<Reporting> findAll(String search, Statut statut, Secteur secteur, Responsable responsable, String sort) {
-        return sortReportings(filterReportings(repo.findAll(), search, statut, secteur, responsable), sort);
+    public List<Reporting> findAll(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String sort) {
+        return sortReportings(filterReportings(repo.findAll(), search, statut, secteur, responsable, fournisseur), sort);
     }
 
-    public String export(String search, Statut statut, Secteur secteur, Responsable responsable, String sort) {
-        List<Reporting> reportings = findAll(search, statut, secteur, responsable, sort);
-        String header = "id,numeroDA,numeroDossier,statut,secteur,responsable,quantite,dateCreation,dateModification";
+    public String export(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String sort) {
+        List<Reporting> reportings = findAll(search, statut, secteur, responsable, fournisseur, sort);
+        String header = "N°,Code Oracle,Code SAP,Description,UDM,Quantité,Secteur,CMD,Fournisseur,% Livraison,Délai,Statut,Responsable,Commentaire";
         String rows = reportings.stream().map(this::toCsvLine).collect(Collectors.joining("\n"));
         return header + (rows.isEmpty() ? "" : "\n" + rows);
     }
 
-    private List<Reporting> filterReportings(List<Reporting> reportings, String search, Statut statut, Secteur secteur, Responsable responsable) {
+    public byte[] exportToExcel(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String sort) throws IOException {
+        List<Reporting> reportings = findAll(search, statut, secteur, responsable, fournisseur, sort);
+        
+        Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Reportings");
+        
+        // Créer l'en-tête
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {"N°", "Code Oracle", "Code SAP", "Description", "UDM", "Quantité", "Secteur", "CMD", "Fournisseur", "% Livraison", "Délai", "Statut", "Responsable", "Commentaire"};
+        
+        org.apache.poi.xssf.usermodel.XSSFCellStyle headerStyle = (org.apache.poi.xssf.usermodel.XSSFCellStyle) workbook.createCellStyle();
+        org.apache.poi.xssf.usermodel.XSSFFont headerFont = (org.apache.poi.xssf.usermodel.XSSFFont) workbook.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
+        
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+        
+        // Ajouter les données
+        int rowIndex = 1;
+        for (Reporting reporting : reportings) {
+            Row row = sheet.createRow(rowIndex++);
+            row.createCell(0).setCellValue(reporting.getNumero() != null ? reporting.getNumero() : "");
+            row.createCell(1).setCellValue(reporting.getCodeOracle() != null ? reporting.getCodeOracle() : "");
+            row.createCell(2).setCellValue(reporting.getCodeSAP() != null ? reporting.getCodeSAP() : "");
+            row.createCell(3).setCellValue(reporting.getDescription() != null ? reporting.getDescription() : "");
+            row.createCell(4).setCellValue(reporting.getUniteDeMesure() != null ? reporting.getUniteDeMesure().name() : "");
+            row.createCell(5).setCellValue(reporting.getQuantite() != null ? reporting.getQuantite() : 0);
+            row.createCell(6).setCellValue(reporting.getSecteur() != null ? reporting.getSecteur().name() : "");
+            row.createCell(7).setCellValue(reporting.getCommande() != null ? reporting.getCommande() : "");
+            row.createCell(8).setCellValue(reporting.getFournisseur() != null ? reporting.getFournisseur() : "");
+            row.createCell(9).setCellValue(reporting.getPourcentageLivraison() != null ? reporting.getPourcentageLivraison() : 0);
+            row.createCell(10).setCellValue(reporting.getDelaiLivraison() != null ? reporting.getDelaiLivraison() : 0);
+            row.createCell(11).setCellValue(reporting.getStatut() != null ? reporting.getStatut().name() : "");
+            row.createCell(12).setCellValue(reporting.getResponsable() != null ? reporting.getResponsable().name() : "");
+            row.createCell(13).setCellValue(reporting.getCommentaire() != null ? reporting.getCommentaire() : "");
+        }
+        
+        // Ajuster la largeur des colonnes
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+        
+        // Convertir en byte array
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        workbook.write(baos);
+        workbook.close();
+        return baos.toByteArray();
+    }
+
+    private String toCsvLine(Reporting reporting) {
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                escapeCsv(reporting.getNumero()),
+                escapeCsv(reporting.getCodeOracle()),
+                escapeCsv(reporting.getCodeSAP()),
+                escapeCsv(reporting.getDescription()),
+                reporting.getUniteDeMesure() == null ? "" : reporting.getUniteDeMesure().name(),
+                reporting.getQuantite() == null ? "" : reporting.getQuantite().toString(),
+                reporting.getSecteur() == null ? "" : reporting.getSecteur().name(),
+                escapeCsv(reporting.getCommande()),
+                escapeCsv(reporting.getFournisseur()),
+                reporting.getPourcentageLivraison() == null ? "" : reporting.getPourcentageLivraison().toString(),
+                reporting.getDelaiLivraison() == null ? "" : reporting.getDelaiLivraison().toString(),
+                reporting.getStatut() == null ? "" : reporting.getStatut().name(),
+                reporting.getResponsable() == null ? "" : reporting.getResponsable().name(),
+                escapeCsv(reporting.getCommentaire()));
+    }
+
+    public ImportResultDto importFromExcel(InputStream inputStream) throws IOException {
+        List<String> errors = new ArrayList<>();
+        int importedCount = 0;
+        try (Workbook workbook = WorkbookFactory.create(inputStream)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            if (sheet == null || sheet.getPhysicalNumberOfRows() < 1) {
+                return new ImportResultDto(0, errors);
+            }
+
+            Row headerRow = sheet.getRow(0);
+            if (headerRow == null) {
+                throw new IllegalArgumentException("La première ligne doit contenir les en-têtes de colonnes.");
+            }
+
+            List<String> expectedHeaders = Arrays.asList(
+                    "DA",
+                    "Dossier",
+                    "N°",
+                    "code Oracle",
+                    "Code SAP",
+                    "Description",
+                    "UDM",
+                    "Q retenue",
+                    "Secteur",
+                    "Fournisseur",
+                    "CMD",
+                    "%Livraison",
+                    "Délai livraison",
+                    "Date notification",
+                    "Date Prévisionnelle livraison",
+                    "Commentaire",
+                    "Statut Livraison",
+                    "Responsable Dossier"
+            );
+
+            Map<String, Integer> headerIndex = buildHeaderIndex(headerRow);
+            List<String> foundHeaders = buildRawHeaderList(headerRow);
+            validateRequiredHeaders(headerIndex, expectedHeaders, foundHeaders);
+
+            for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                Row row = sheet.getRow(rowIndex);
+                if (row == null || isRowEmpty(row)) {
+                    continue;
+                }
+
+                Reporting reporting = buildReportingFromRow(row, headerIndex);
+                // Business validation: require at least one identifier and a quantity
+                List<String> rowErrors = new ArrayList<>();
+                if (reporting.getNumeroDA() == null && reporting.getNumeroDossier() == null && reporting.getNumero() == null) {
+                    rowErrors.add("Identifiant manquant (DA, Dossier ou N°)");
+                }
+                if (reporting.getQuantite() == null) {
+                    rowErrors.add("Quantité manquante ou invalide");
+                }
+
+                if (!rowErrors.isEmpty()) {
+                    errors.add("Ligne " + (rowIndex + 1) + " : " + String.join("; ", rowErrors));
+                    continue;
+                }
+
+                save(reporting);
+                importedCount++;
+            }
+            return new ImportResultDto(importedCount, errors);
+        }
+    }
+
+    private Map<String, Integer> buildHeaderIndex(Row headerRow) {
+        DataFormatter formatter = new DataFormatter();
+        Map<String, Integer> headerIndex = new HashMap<>();
+        for (Cell cell : headerRow) {
+            String headerValue = formatter.formatCellValue(cell);
+            if (headerValue != null && !headerValue.isBlank()) {
+                headerIndex.put(normalizeHeader(headerValue), cell.getColumnIndex());
+            }
+        }
+        return headerIndex;
+    }
+
+    private List<String> buildRawHeaderList(Row headerRow) {
+        DataFormatter formatter = new DataFormatter();
+        List<String> rawHeaders = new ArrayList<>();
+        for (Cell cell : headerRow) {
+            String headerValue = formatter.formatCellValue(cell);
+            rawHeaders.add(headerValue == null ? "" : headerValue.trim());
+        }
+        return rawHeaders;
+    }
+
+    private void validateRequiredHeaders(Map<String, Integer> headerIndex, List<String> expectedHeaders, List<String> foundHeaders) {
+        for (String expected : expectedHeaders) {
+            String normalized = normalizeHeader(expected);
+            if (!headerIndex.containsKey(normalized)) {
+                throw new IllegalArgumentException("Colonne manquante : " + expected + ". En-têtes trouvées : " + String.join(", ", foundHeaders));
+            }
+        }
+    }
+
+    private String normalizeHeader(String header) {
+        if (header == null) {
+            return null;
+        }
+        String normalized = java.text.Normalizer.normalize(header.trim().toLowerCase(Locale.ROOT), java.text.Normalizer.Form.NFD);
+        normalized = normalized.replaceAll("\\p{M}", "");
+        return normalized.replaceAll("[^a-z0-9]", "");
+    }
+
+    private boolean isRowEmpty(Row row) {
+        for (Cell cell : row) {
+            if (cell != null && cell.getCellType() != CellType.BLANK && !getCellString(cell).isBlank()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Reporting buildReportingFromRow(Row row, Map<String, Integer> headerIndex) {
+        Reporting reporting = new Reporting();
+        reporting.setNumeroDA(getCellValue(row, headerIndex, "da", "DA"));
+        reporting.setNumeroDossier(getCellValue(row, headerIndex, "dossier", "Dossier"));
+        reporting.setNumero(getCellValue(row, headerIndex, "N°", "N", "n", "numero", "numero"));
+        reporting.setCodeOracle(getCellValue(row, headerIndex, "codeOracle", "code Oracle"));
+        reporting.setCodeSAP(getCellValue(row, headerIndex, "codeSAP", "Code SAP"));
+        reporting.setDescription(getCellValue(row, headerIndex, "description", "Description"));
+        reporting.setUniteDeMesure(parseEnumValue(row, headerIndex, Udm.class, "UDM", "Udm", "udm"));
+        reporting.setQuantite(getDoubleValue(row, headerIndex, "Q retenue", "Qretenue", "q retenue", "qretenue", "quantite", "quantite"));
+        reporting.setSecteur(parseEnumValue(row, headerIndex, Secteur.class, "Secteur", "secteur"));
+        reporting.setCommande(getCellValue(row, headerIndex, "CMD", "cmd", "Commande", "commande"));
+        reporting.setFournisseur(getCellValue(row, headerIndex, "Fournisseur", "fournisseur"));
+        reporting.setPourcentageLivraison(getIntegerValue(row, headerIndex, "%Livraison", "pourcentage livraison", "pourcentagelivraison", "pourcentage"));
+        reporting.setDelaiLivraison(getIntegerValue(row, headerIndex, "Délai livraison", "Delai livraison", "delai livraison", "delailivraison", "delaiLivraison"));
+        reporting.setDateNotification(getDateValue(row, headerIndex, "Date notification", "date notification", "datenotification", "date notif"));
+        reporting.setDatePrevisionnelle(getDateValue(row, headerIndex, "Date Prévisionnelle livraison", "date prévisionnelle livraison", "dateprevisionnellelivraison", "dateprevisionnelle"));
+        reporting.setStatut(parseEnumValue(row, headerIndex, Statut.class, "statut livraison", "statut", "statutlivraison"));
+        reporting.setResponsable(parseEnumValue(row, headerIndex, Responsable.class, "Responsable Dossier", "responsable dossier", "responsabledossier", "responsable"));
+        reporting.setCommentaire(getCellValue(row, headerIndex, "Commentaire", "commentaire"));
+        return reporting;
+    }
+
+    private String getCellValue(Row row, Map<String, Integer> headerIndex, String... headerNames) {
+        for (String headerName : headerNames) {
+            Integer index = headerIndex.get(normalizeHeader(headerName));
+            if (index == null) {
+                continue;
+            }
+            Cell cell = row.getCell(index);
+            String value = getCellString(cell);
+            if (!value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private String getCellString(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        DataFormatter formatter = new DataFormatter();
+        return formatter.formatCellValue(cell).trim();
+    }
+
+    private Double getDoubleValue(Row row, Map<String, Integer> headerIndex, String... headerNames) {
+        String stringValue = getCellValue(row, headerIndex, headerNames);
+        if (stringValue == null || stringValue.isBlank()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(normalizeNumber(stringValue));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Integer getIntegerValue(Row row, Map<String, Integer> headerIndex, String... headerNames) {
+        Double doubleValue = getDoubleValue(row, headerIndex, headerNames);
+        return doubleValue == null ? null : doubleValue.intValue();
+    }
+
+    private String normalizeNumber(String value) {
+        return value.trim().replaceAll("%", "").replaceAll("\\s+", "").replace(',', '.');
+    }
+
+    private <E extends Enum<E>> E parseEnumValue(Row row, Map<String, Integer> headerIndex, Class<E> enumType, String... headerNames) {
+        String stringValue = getCellValue(row, headerIndex, headerNames);
+        if (stringValue == null || stringValue.isBlank()) {
+            return null;
+        }
+        String normalized = normalizeEnumValue(stringValue);
+        try {
+            return Enum.valueOf(enumType, normalized);
+        } catch (IllegalArgumentException e) {
+            return tryEnumSynonyms(enumType, normalized);
+        }
+    }
+
+    private String normalizeEnumValue(String value) {
+        String normalized = java.text.Normalizer.normalize(value.trim(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase(Locale.ROOT)
+                .replaceAll("[\\s\\-]", "_")
+                .replaceAll("[^A-Z0-9_]", "");
+        return normalized;
+    }
+
+    private <E extends Enum<E>> E tryEnumSynonyms(Class<E> enumType, String normalized) {
+        Map<String, String> synonyms = new HashMap<>();
+        synonyms.put("LIVRE", "LIVRE");
+        synonyms.put("LIVRE", "LIVRE");
+        synonyms.put("LIVRE", "LIVRE");
+        synonyms.put("LIVRE", "LIVRE");
+
+        if (enumType == Statut.class) {
+            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("ARTICLE_ADJUGE", "ADJUGE");
+            synonyms.put("ARTICLE_ADJUGE", "ADJUGE");
+            synonyms.put("ARTICLE_ADJUGE", "ADJUGE");
+            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("LIVRER", "LIVRE");
+            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("ARTICLES_ADJUGE", "ADJUGE");
+        } else if (enumType == Udm.class) {
+            synonyms.put("PIECE", "PIECE");
+            synonyms.put("PCE", "PCE");
+        }
+        String mapped = synonyms.get(normalized);
+        if (mapped != null) {
+            try {
+                return Enum.valueOf(enumType, mapped);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private LocalDate getDateValue(Row row, Map<String, Integer> headerIndex, String... headerNames) {
+        Integer index = null;
+        for (String headerName : headerNames) {
+            Integer headerIndexValue = headerIndex.get(normalizeHeader(headerName));
+            if (headerIndexValue != null) {
+                index = headerIndexValue;
+                break;
+            }
+        }
+        if (index == null) {
+            return null;
+        }
+        Cell cell = row.getCell(index);
+        if (cell == null) {
+            return null;
+        }
+        if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            return cell.getLocalDateTimeCellValue().toLocalDate();
+        }
+        String stringValue = getCellString(cell);
+        if (stringValue.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(stringValue);
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDate.parse(stringValue, DateTimeFormatter.ofPattern("d/MM/yyyy"));
+            } catch (DateTimeParseException ex) {
+                return null;
+            }
+        }
+    }
+
+    private List<Reporting> filterReportings(List<Reporting> reportings, String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur) {
         return reportings.stream()
                 .filter(reporting -> matchesStatut(reporting, statut))
                 .filter(reporting -> matchesSecteur(reporting, secteur))
                 .filter(reporting -> matchesResponsable(reporting, responsable))
+                .filter(reporting -> matchesFournisseur(reporting, fournisseur))
                 .filter(reporting -> matchesSearch(reporting, search))
                 .collect(Collectors.toList());
     }
@@ -71,6 +435,7 @@ public class ReportingService {
         return Stream.of(
                 reporting.getNumeroDA(),
                 reporting.getNumeroDossier(),
+                reporting.getNumero(),
                 reporting.getCodeOracle(),
                 reporting.getCodeSAP(),
                 reporting.getDescription(),
@@ -80,6 +445,10 @@ public class ReportingService {
         ).filter(Objects::nonNull)
                 .map(String::toLowerCase)
                 .anyMatch(value -> value.contains(normalized));
+    }
+
+    private boolean matchesFournisseur(Reporting reporting, String fournisseur) {
+        return fournisseur == null || fournisseur.isBlank() || reporting.getFournisseur() == null || reporting.getFournisseur().toLowerCase().contains(fournisseur.trim().toLowerCase());
     }
 
     private List<Reporting> sortReportings(List<Reporting> reportings, String sort) {
@@ -101,19 +470,6 @@ public class ReportingService {
             comparator = comparator.reversed();
         }
         return reportings.stream().sorted(comparator).collect(Collectors.toList());
-    }
-
-    private String toCsvLine(Reporting reporting) {
-        return String.format("%d,%s,%s,%s,%s,%s,%s,%s,%s",
-                reporting.getId(),
-                escapeCsv(reporting.getNumeroDA()),
-                escapeCsv(reporting.getNumeroDossier()),
-                reporting.getStatut(),
-                reporting.getSecteur(),
-                reporting.getResponsable(),
-                reporting.getQuantite(),
-                reporting.getDateCreation(),
-                reporting.getDateModification());
     }
 
     private String escapeCsv(String value) {
@@ -193,6 +549,7 @@ public class ReportingService {
 
         compareField(changements, existing.getNumeroDA(), updated.getNumeroDA(), "numéro DA", now, existing);
         compareField(changements, existing.getNumeroDossier(), updated.getNumeroDossier(), "numéro dossier", now, existing);
+        compareField(changements, existing.getNumero(), updated.getNumero(), "N°", now, existing);
         compareField(changements, existing.getCodeOracle(), updated.getCodeOracle(), "code Oracle", now, existing);
         compareField(changements, existing.getCodeSAP(), updated.getCodeSAP(), "code SAP", now, existing);
         compareField(changements, existing.getDescription(), updated.getDescription(), "description", now, existing);
@@ -242,6 +599,7 @@ public class ReportingService {
     private void copyReportingFields(Reporting source, Reporting target) {
         target.setNumeroDA(source.getNumeroDA());
         target.setNumeroDossier(source.getNumeroDossier());
+        target.setNumero(source.getNumero());
         target.setCodeOracle(source.getCodeOracle());
         target.setCodeSAP(source.getCodeSAP());
         target.setDescription(source.getDescription());

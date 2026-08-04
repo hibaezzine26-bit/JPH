@@ -21,6 +21,7 @@ public class ReportingMapper {
         dto.setId(reporting.getId());
         dto.setNumeroDA(reporting.getNumeroDA());
         dto.setNumeroDossier(reporting.getNumeroDossier());
+        dto.setNumero(reporting.getNumero());
         dto.setCodeOracle(reporting.getCodeOracle());
         dto.setCodeSAP(reporting.getCodeSAP());
         dto.setDescription(reporting.getDescription());
@@ -50,6 +51,7 @@ public class ReportingMapper {
         reporting.setId(dto.getId());
         reporting.setNumeroDA(dto.getNumeroDA());
         reporting.setNumeroDossier(dto.getNumeroDossier());
+        reporting.setNumero(dto.getNumero());
         reporting.setCodeOracle(dto.getCodeOracle());
         reporting.setCodeSAP(dto.getCodeSAP());
         reporting.setDescription(dto.getDescription());

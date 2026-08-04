@@ -70,7 +70,7 @@ public class UtilisateurService {
         utilisateur.setNom(updated.getNom());
         utilisateur.setPrenom(updated.getPrenom());
         utilisateur.setEmail(updated.getEmail());
-        utilisateur.setRole(updated.getRole());
+        // Ne pas permettre de modifier le rôle via le profil utilisateur
         if (updated.getMotDePasse() != null && !updated.getMotDePasse().isBlank()) {
             utilisateur.setMotDePasse(passwordEncoder.encode(updated.getMotDePasse()));
         }

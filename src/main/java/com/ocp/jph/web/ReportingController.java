@@ -1,5 +1,6 @@
 package com.ocp.jph.web;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ocp.jph.domain.Reporting;
 import com.ocp.jph.domain.Responsable;
 import com.ocp.jph.domain.Secteur;
 import com.ocp.jph.domain.Statut;
 import com.ocp.jph.dto.HistoriqueDto;
+import com.ocp.jph.dto.ImportResultDto;
 import com.ocp.jph.dto.ReportingDto;
 import com.ocp.jph.dto.ReportingStatisticsDto;
 import com.ocp.jph.service.HistoriqueService;
@@ -51,22 +54,39 @@ public class ReportingController {
             @RequestParam(required = false) Statut statut,
             @RequestParam(required = false) Secteur secteur,
             @RequestParam(required = false) Responsable responsable,
+            @RequestParam(required = false) String fournisseur,
             @RequestParam(required = false) String sort) {
-        return service.findAll(search, statut, secteur, responsable, sort).stream().map(mapper::toDto).toList();
+        return service.findAll(search, statut, secteur, responsable, fournisseur, sort).stream().map(mapper::toDto).toList();
     }
 
     @GetMapping("/export")
-    public ResponseEntity<String> export(
+    public ResponseEntity<byte[]> export(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Statut statut,
             @RequestParam(required = false) Secteur secteur,
             @RequestParam(required = false) Responsable responsable,
-            @RequestParam(required = false) String sort) {
-        String csv = service.export(search, statut, secteur, responsable, sort);
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_PLAIN)
-                .header("Content-Disposition", "attachment; filename=reportings.csv")
-                .body(csv);
+            @RequestParam(required = false) String fournisseur,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false, defaultValue = "xlsx") String format) throws IOException {
+        if ("csv".equalsIgnoreCase(format)) {
+            String csv = service.export(search, statut, secteur, responsable, fournisseur, sort);
+            // Add UTF-8 BOM so Excel detects UTF-8 correctly
+            byte[] bom = new byte[] {(byte)0xEF, (byte)0xBB, (byte)0xBF};
+            byte[] csvBytes = csv.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            byte[] payload = new byte[bom.length + csvBytes.length];
+            System.arraycopy(bom, 0, payload, 0, bom.length);
+            System.arraycopy(csvBytes, 0, payload, bom.length, csvBytes.length);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .header("Content-Disposition", "attachment; filename=reportings.csv")
+                    .body(payload);
+        } else {
+            byte[] excelFile = service.exportToExcel(search, statut, secteur, responsable, fournisseur, sort);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .header("Content-Disposition", "attachment; filename=reportings.xlsx")
+                    .body(excelFile);
+        }
     }
 
     @GetMapping("/{id}")
@@ -91,6 +111,24 @@ public class ReportingController {
     @GetMapping("/statistiques")
     public ReportingStatisticsDto statistics() {
         return service.statistics();
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            ImportResultDto result = service.importFromExcel(file.getInputStream());
+            if (result.getErrors() == null || result.getErrors().isEmpty()) {
+                return ResponseEntity.ok(result.getImportedCount() + " reportings importés.");
+            } else {
+                return ResponseEntity.badRequest().body(result);
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Impossible de lire le fichier Excel.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur interne : " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/historiques")

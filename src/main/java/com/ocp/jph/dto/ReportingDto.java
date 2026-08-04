@@ -23,6 +23,9 @@ public class ReportingDto {
     private String numeroDossier;
 
     @NotBlank
+    private String numero;
+
+    @NotBlank
     private String codeOracle;
 
     @NotBlank
@@ -31,10 +34,8 @@ public class ReportingDto {
     @Size(max = 2000)
     private String description;
 
-    @NotNull
     private Udm uniteDeMesure;
 
-    @NotNull
     private Double quantite;
 
     @NotNull
@@ -46,16 +47,12 @@ public class ReportingDto {
     @NotBlank
     private String fournisseur;
 
-    @NotNull
     private Integer pourcentageLivraison;
 
-    @NotNull
     private Integer delaiLivraison;
 
-    @NotNull
     private LocalDate dateNotification;
 
-    @NotNull
     private LocalDate datePrevisionnelle;
 
     @NotNull
@@ -95,6 +92,14 @@ public class ReportingDto {
 
     public void setNumeroDossier(String numeroDossier) {
         this.numeroDossier = numeroDossier;
+    }
+
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
     }
 
     public String getCodeOracle() {

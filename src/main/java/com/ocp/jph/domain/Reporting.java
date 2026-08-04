@@ -24,6 +24,7 @@ public class Reporting {
 
     private String numeroDA;
     private String numeroDossier;
+    private String numero;
     private String codeOracle;
     private String codeSAP;
 
@@ -90,6 +91,14 @@ public class Reporting {
 
     public void setNumeroDossier(String numeroDossier) {
         this.numeroDossier = numeroDossier;
+    }
+
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
     }
 
     public String getCodeOracle() {

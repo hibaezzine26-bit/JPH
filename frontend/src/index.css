@@ -1,0 +1,248 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #111827;
+  background: #e9ebee;
+  --surface: #ffffff;
+  --surface-soft: #f0f2f5;
+  --surface-strong: #dfe3ee;
+  --border: rgba(0, 0, 0, 0.08);
+  --text-primary: #050505;
+  --text-secondary: #606770;
+  --accent: #1877f2;
+  --accent-strong: #1659c1;
+  --accent-soft: rgba(24, 119, 242, 0.12);
+  --topbar-bg: #1877f2;
+  --topbar-text: #ffffff;
+  --topbar-link-hover: rgba(255, 255, 255, 0.18);
+  --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  background: #0f172a;
+  --surface: #111827;
+  --surface-soft: #1f2937;
+  --surface-strong: #2f3640;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --topbar-bg: #1c1e21;
+  --topbar-text: #f8fafc;
+  --topbar-link-hover: rgba(255, 255, 255, 0.12);
+  --shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f0f2f5;
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] body {
+  background: #18191a;
+  color: var(--text-primary);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.card,
+.glass-card {
+  background: var(--surface);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.btn-outline-secondary {
+  color: var(--text-primary);
+  background-color: #fff;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.form-control,
+.form-select,
+textarea {
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.15rem rgba(24, 119, 242, 0.15);
+}
+
+.table thead th {
+  background-color: var(--surface-soft);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(24, 119, 242, 0.08);
+}
+
+.topbar {
+  background: var(--topbar-bg);
+  color: var(--topbar-text);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.topbar-link {
+  color: var(--topbar-text);
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  font-weight: 600;
+}
+
+.topbar-link:hover {
+  background-color: var(--topbar-link-hover);
+  color: var(--topbar-text);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.topbar-link.active {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.logo-frame {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.topbar-nav {
+  gap: 18px;
+}
+
+.topbar .chev {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 991px) {
+  .topbar-nav { display: none !important; }
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+input,
+textarea,
+select,
+.card,
+.navbar,
+.alert,
+.table,
+.table th,
+.table td,
+.form-control,
+.form-select {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+button {
+  cursor: pointer;
+}
+
+body,
+input,
+button,
+textarea,
+select {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme='dark'] .btn-light {
+  background-color: var(--surface-soft);
+  color: var(--text-primary);
+}
+
+.glass-card {
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.text-muted-custom {
+  color: var(--text-secondary) !important;
+}
+
+/* Additional topbar helpers */
+.logo-frame {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 4px;
+  background: rgba(0,0,0,0.02);
+}
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.topbar-nav {
+  gap: 18px;
+}
+.topbar .chev {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 991px) {
+  .topbar-nav { display: none !important; }
+}
