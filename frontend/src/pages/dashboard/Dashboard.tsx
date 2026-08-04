@@ -1,5 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
+import SearchBar from '../../components/ui/SearchBar';
+import StatCard from '../../components/ui/StatCard';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
+import Badge from '../../components/ui/Badge';
 
 interface ReportingDto {
   id?: number;
@@ -29,11 +35,27 @@ const statutOptions = ['', 'EN_COURS', 'ATTENTE_LIVRAISON', 'LIVRE', 'ECARTE', '
 const secteurOptions = ['', 'AMMONIAC', 'SOUFRE', 'EXPORT', 'COMMUN'];
 const responsableOptions = ['', 'ATTOUCHI', 'BELYAZID', 'REGUIG', 'EL_HARKI'];
 
-const sortOptions = [
-  { value: '', label: 'Trier par défaut' },
-  { value: 'numero,asc', label: 'N° croissant' },
-  { value: 'numero,desc', label: 'N° décroissant' },
-];
+const statusLabels: Record<string, string> = {
+  EN_COURS: 'En cours',
+  ATTENTE_LIVRAISON: 'Attente',
+  LIVRE: 'Livré',
+  ECARTE: 'Écarté',
+  ADJUGE: 'Adjugé',
+  LITIGE: 'Litige',
+  ANNULE: 'Annulé',
+};
+
+const statusVariants: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
+  EN_COURS: 'info',
+  ATTENTE_LIVRAISON: 'warning',
+  LIVRE: 'success',
+  ECARTE: 'danger',
+  ADJUGE: 'info',
+  LITIGE: 'danger',
+  ANNULE: 'danger',
+};
+
+const statusCards = ['EN_COURS', 'LIVRE', 'ATTENTE_LIVRAISON', 'ECARTE', 'ADJUGE', 'LITIGE', 'ANNULE'];
 
 const Dashboard: React.FC = () => {
   const [reportings, setReportings] = useState<ReportingDto[]>([]);
@@ -85,8 +107,6 @@ const Dashboard: React.FC = () => {
       if (filters.responsable) params.responsable = filters.responsable;
       if (filters.fournisseur) params.fournisseur = filters.fournisseur;
       if (filters.sort) params.sort = filters.sort;
-
-      // demander explicitement le format Excel (.xlsx)
       params.format = 'xlsx';
 
       const response = await api.get('/reportings/export', {
@@ -115,163 +135,182 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      EN_COURS: 0,
+      ATTENTE_LIVRAISON: 0,
+      LIVRE: 0,
+      ECARTE: 0,
+      ADJUGE: 0,
+      LITIGE: 0,
+      ANNULE: 0,
+    };
+    reportings.forEach((report) => {
+      if (report.statut in counts) {
+        counts[report.statut] += 1;
+      }
+    });
+    return counts;
+  }, [reportings]);
+
+  const totalCount = reportings.length;
+  const chartData = statusCards.map((key) => ({
+    key,
+    label: statusLabels[key],
+    count: statusCounts[key],
+    ratio: totalCount ? Math.round((statusCounts[key] / totalCount) * 100) : 0,
+  }));
+
   return (
-    <div className="container-fluid">
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
-            <div>
-              <h1 className="h4 mb-1">Consultant - Reportings</h1>
-            </div>
-            <div className="d-flex gap-2 flex-wrap">
-              <button type="button" className="btn btn-primary" onClick={handleExport}>
-                Exporter
-              </button>
-            </div>
-          </div>
-
-          <div className="row g-3 mb-3">
-            <div className="col-md-3">
-              <input
-                type="search"
-                className="form-control"
-                placeholder="Rechercher..."
-                value={filters.search}
-                onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-              />
-            </div>
-            <div className="col-md-2">
-              <select
-                className="form-select"
-                value={filters.statut}
-                onChange={(event) => setFilters({ ...filters, statut: event.target.value })}
-              >
-                {statutOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option || 'Tous les statuts'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-2">
-              <select
-                className="form-select"
-                value={filters.secteur}
-                onChange={(event) => setFilters({ ...filters, secteur: event.target.value })}
-              >
-                {secteurOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option || 'Tous les secteurs'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-2">
-              <select
-                className="form-select"
-                value={filters.responsable}
-                onChange={(event) => setFilters({ ...filters, responsable: event.target.value })}
-              >
-                {responsableOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option || 'Tous les responsables'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-2">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Fournisseur"
-                value={filters.fournisseur}
-                onChange={(event) => setFilters({ ...filters, fournisseur: event.target.value })}
-              />
-            </div>
-            <div className="col-md-1">
-              <select
-                className="form-select"
-                value={filters.sort}
-                onChange={(event) => setFilters({ ...filters, sort: event.target.value })}
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="d-flex justify-content-between mb-3">
-            <div className="d-flex gap-2 flex-wrap">
-              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                Réinitialiser
-              </button>
-            </div>
-            <span className="text-muted">{reportings.length} reportings affichés</span>
-          </div>
-
-          {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-
-          <div className="table-responsive">
-            <table className="table table-striped align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th>N°</th>
-                  <th>Code Oracle</th>
-                  <th>Code SAP</th>
-                  <th>Description</th>
-                  <th>UDM</th>
-                  <th>Quantité</th>
-                  <th>Secteur</th>
-                  <th>CMD</th>
-                  <th>Fournisseur</th>
-                  <th>% Livraison</th>
-                  <th>Délai</th>
-                  <th>Statut</th>
-                  <th>Responsable</th>
-                  <th>Commentaire</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={14} className="text-center py-4 text-muted">
-                      Chargement...
-                    </td>
-                  </tr>
-                ) : reportings.length === 0 ? (
-                  <tr>
-                    <td colSpan={16} className="text-center py-4 text-muted">
-                      Aucun reporting trouvé.
-                    </td>
-                  </tr>
-                ) : (
-                  reportings.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.numero}</td>
-                      <td>{item.codeOracle}</td>
-                      <td>{item.codeSAP}</td>
-                      <td>{item.description}</td>
-                      <td>{item.uniteDeMesure}</td>
-                      <td>{item.quantite ?? ''}</td>
-                      <td>{item.secteur}</td>
-                      <td>{item.commande}</td>
-                      <td>{item.fournisseur}</td>
-                      <td>{item.pourcentageLivraison ?? ''}%</td>
-                      <td>{item.delaiLivraison ?? ''}</td>
-                      <td>{item.statut}</td>
-                      <td>{item.responsable}</td>
-                      <td>{item.commentaire}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+    <div className="ui-section">
+      <div className="ui-toolbar">
+        <div className="ui-toolbar__title">
+          <h1>Tableau de bord</h1>
+          <p className="ui-toolbar__subtitle">Vue synthétique et actions rapides sur les reportings.</p>
+        </div>
+        <div className="ui-toolbar__right">
+          <Button variant="ghost" className="ui-button--small" onClick={handleReset}>
+            Réinitialiser
+          </Button>
+          <Button variant="primary" className="ui-button--small" onClick={handleExport}>
+            Exporter
+          </Button>
         </div>
       </div>
+
+      <div className="ui-section ui-section--grid">
+        <StatCard title="Total reportings" value={totalCount} subtitle="Tous statuts confondus" />
+        <StatCard title="En cours" value={statusCounts.EN_COURS} subtitle="Livraison en cours" />
+        <StatCard title="Attente" value={statusCounts.ATTENTE_LIVRAISON} subtitle="Prêt à livrer" />
+        <StatCard title="Livré" value={statusCounts.LIVRE} subtitle="Reportings terminés" />
+        <StatCard title="Écarté" value={statusCounts.ECARTE} subtitle="Refusés / stoppés" />
+        <StatCard title="Adjugé" value={statusCounts.ADJUGE} subtitle="Déjà attribués" />
+        <StatCard title="Litige" value={statusCounts.LITIGE} subtitle="Interventions requises" />
+        <StatCard title="Annulé" value={statusCounts.ANNULE} subtitle="Annulés" />
+      </div>
+
+      <Card>
+        <div className="ui-toolbar">
+          <div className="ui-toolbar__left">
+            <SearchBar value={filters.search} onChange={(value) => setFilters({ ...filters, search: value })} />
+          </div>
+          <div className="ui-toolbar__right">
+            <Badge label={`${totalCount} reportings`} variant="info" />
+          </div>
+        </div>
+
+        <div className="filter-panel__row mb-4">
+          <div>
+            <select
+              className="form-select"
+              value={filters.statut}
+              onChange={(event) => setFilters({ ...filters, statut: event.target.value })}
+            >
+              {statutOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option || 'Tous les statuts'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select
+              className="form-select"
+              value={filters.secteur}
+              onChange={(event) => setFilters({ ...filters, secteur: event.target.value })}
+            >
+              {secteurOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option || 'Tous les secteurs'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select
+              className="form-select"
+              value={filters.responsable}
+              onChange={(event) => setFilters({ ...filters, responsable: event.target.value })}
+            >
+              {responsableOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option || 'Tous les responsables'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Fournisseur"
+              value={filters.fournisseur}
+              onChange={(event) => setFilters({ ...filters, fournisseur: event.target.value })}
+            />
+          </div>
+        </div>
+
+        {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+
+        <div className="ui-section">
+          <Card>
+            <div className="section-heading">
+              <p className="section-heading__subtitle">Analyse statuts</p>
+              <h2 className="section-heading__title">Répartition des statuts</h2>
+            </div>
+            <div className="chart-bars">
+              {chartData.map((item) => (
+                <div key={item.key} className="chart-bars__item">
+                  <span className="chart-bars__label">{item.label}</span>
+                  <div className="chart-bars__track">
+                    <div className="chart-bars__fill" style={{ width: `${item.ratio}%` }} />
+                  </div>
+                  <span className="chart-bars__value">{item.count}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <div className="section-heading">
+              <p className="section-heading__subtitle">Derniers reportings</p>
+              <h2 className="section-heading__title">Vue rapide</h2>
+            </div>
+            {loading ? (
+              <Loading />
+            ) : reportings.length === 0 ? (
+              <div className="text-muted">Aucun reporting trouvé.</div>
+            ) : (
+              <div className="app-table-responsive">
+                <table className="app-table">
+                  <thead>
+                    <tr>
+                      <th>DA</th>
+                      <th>Commande</th>
+                      <th>Fournisseur</th>
+                      <th>Statut</th>
+                      <th>Responsable</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportings.slice(0, 6).map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.numeroDA}</td>
+                        <td>{item.commande}</td>
+                        <td>{item.fournisseur}</td>
+                        <td>
+                          <Badge label={statusLabels[item.statut] ?? item.statut} variant={statusVariants[item.statut] ?? 'default'} />
+                        </td>
+                        <td>{item.responsable}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
+      </Card>
     </div>
   );
 };

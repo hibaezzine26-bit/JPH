@@ -1,116 +1,121 @@
 # File Tree: jph
 
-**Generated:** 7/31/2026, 12:36:54 PM
+**Generated:** 8/4/2026, 12:24:43 PM
 **Root Path:** `c:\Users\HP\Documents\jph`
 
 ```
-├── .mvn
-│   └── wrapper
-│       └── maven-wrapper.properties
-├── frontend
-│   ├── public
-│   │   ├── favicon.svg
-│   │   └── icons.svg
-│   ├── src
-│   │   ├── assets
-│   │   │   ├── hero.png
-│   │   │   ├── react.svg
-│   │   │   └── vite.svg
-│   │   ├── components
-│   │   │   ├── layout
-│   │   │   │   └── Layout.tsx
-│   │   │   └── ProtectedRoute.tsx
-│   │   ├── context
-│   │   │   └── AuthContext.tsx
-│   │   ├── hooks
-│   │   ├── pages
-│   │   │   ├── auth
-│   │   │   │   └── LoginPage.tsx
-│   │   │   ├── dashboard
-│   │   │   │   └── Dashboard.tsx
-│   │   │   ├── historique
-│   │   │   │   └── HistoriquePage.tsx
-│   │   │   ├── import
-│   │   │   │   └── ImportPage.tsx
-│   │   │   └── reporting
-│   │   │       └── ReportingPage.tsx
-│   │   ├── services
-│   │   │   └── api.ts
-│   │   ├── App.css
-│   │   ├── App.tsx
-│   │   ├── index.css
-│   │   └── main.tsx
-│   ├── .gitignore
-│   ├── .oxlintrc.json
-│   ├── README.md
-│   ├── index.html
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── tsconfig.app.json
-│   ├── tsconfig.json
-│   ├── tsconfig.node.json
-│   └── vite.config.ts
-├── src
-│   └── main
-│       ├── java
-│       │   └── com
-│       │       └── ocp
-│       │           └── jph
-│       │               ├── config
-│       │               │   ├── SecurityConfig.java
-│       │               │   └── UserDataInitializer.java
-│       │               ├── domain
-│       │               │   ├── Historique.java
-│       │               │   ├── ImportExcel.java
-│       │               │   ├── Reporting.java
-│       │               │   ├── Responsable.java
-│       │               │   ├── Role.java
-│       │               │   ├── Secteur.java
-│       │               │   ├── Statut.java
-│       │               │   ├── Udm.java
-│       │               │   └── Utilisateur.java
-│       │               ├── dto
-│       │               │   ├── ChangePasswordDto.java
-│       │               │   ├── HistoriqueDto.java
-│       │               │   ├── ImportExcelDto.java
-│       │               │   ├── ReportingDto.java
-│       │               │   ├── ReportingStatisticsDto.java
-│       │               │   └── UtilisateurDto.java
-│       │               ├── repository
-│       │               │   ├── HistoriqueRepository.java
-│       │               │   ├── ImportExcelRepository.java
-│       │               │   ├── ReportingRepository.java
-│       │               │   └── UtilisateurRepository.java
-│       │               ├── service
-│       │               │   ├── HistoriqueService.java
-│       │               │   ├── ImportExcelService.java
-│       │               │   ├── JpaUserDetailsService.java
-│       │               │   ├── ReportingService.java
-│       │               │   └── UtilisateurService.java
-│       │               ├── web
-│       │               │   ├── exception
-│       │               │   │   ├── ValidationError.java
-│       │               │   │   ├── ValidationErrorResponse.java
-│       │               │   │   └── ValidationExceptionHandler.java
-│       │               │   ├── mapper
-│       │               │   │   ├── HistoriqueMapper.java
-│       │               │   │   ├── ImportExcelMapper.java
-│       │               │   │   ├── ReportingMapper.java
-│       │               │   │   └── UtilisateurMapper.java
-│       │               │   ├── HistoriqueController.java
-│       │               │   ├── ImportExcelController.java
-│       │               │   ├── ReportingController.java
-│       │               │   └── UtilisateurController.java
-│       │               └── JphApplication.java
-│       └── resources
-│           └── application.properties
-├── .gitattributes
-├── .gitignore
-├── mvnw
-├── mvnw.cmd
-├── pom.xml
-└── tree_project.md
+├── 📁 .mvn
+│   └── 📁 wrapper
+│       └── 📄 maven-wrapper.properties
+├── 📁 frontend
+│   ├── 📁 public
+│   │   ├── 🖼️ favicon.svg
+│   │   └── 🖼️ icons.svg
+│   ├── 📁 src
+│   │   ├── 📁 assets
+│   │   │   ├── 🖼️ hero.png
+│   │   │   ├── 🖼️ react.svg
+│   │   │   └── 🖼️ vite.svg
+│   │   ├── 📁 components
+│   │   │   ├── 📁 layout
+│   │   │   │   └── 📄 Layout.tsx
+│   │   │   └── 📄 ProtectedRoute.tsx
+│   │   ├── 📁 context
+│   │   │   └── 📄 AuthContext.tsx
+│   │   ├── 📁 hooks
+│   │   ├── 📁 pages
+│   │   │   ├── 📁 auth
+│   │   │   │   ├── 📄 LoginPage.tsx
+│   │   │   │   └── 📄 ProfilePage.tsx
+│   │   │   ├── 📁 dashboard
+│   │   │   │   └── 📄 Dashboard.tsx
+│   │   │   ├── 📁 historique
+│   │   │   │   └── 📄 HistoriquePage.tsx
+│   │   │   ├── 📁 import
+│   │   │   │   └── 📄 ImportPage.tsx
+│   │   │   └── 📁 reporting
+│   │   │       └── 📄 ReportingPage.tsx
+│   │   ├── 📁 services
+│   │   │   └── 📄 api.ts
+│   │   ├── 🎨 App.css
+│   │   ├── 📄 App.tsx
+│   │   ├── 🎨 index.css
+│   │   └── 📄 main.tsx
+│   ├── ⚙️ .gitignore
+│   ├── ⚙️ .oxlintrc.json
+│   ├── 📝 README.md
+│   ├── 🌐 index.html
+│   ├── ⚙️ package-lock.json
+│   ├── ⚙️ package.json
+│   ├── 📄 postcss.config.js
+│   ├── ⚙️ tsconfig.app.json
+│   ├── ⚙️ tsconfig.json
+│   ├── ⚙️ tsconfig.node.json
+│   └── 📄 vite.config.ts
+├── 📁 src
+│   └── 📁 main
+│       ├── 📁 java
+│       │   └── 📁 com
+│       │       └── 📁 ocp
+│       │           └── 📁 jph
+│       │               ├── 📁 config
+│       │               │   ├── ☕ SecurityConfig.java
+│       │               │   ├── ☕ UserDataInitializer.java
+│       │               │   └── 🖼️ file.png
+│       │               ├── 📁 domain
+│       │               │   ├── ☕ Historique.java
+│       │               │   ├── ☕ ImportExcel.java
+│       │               │   ├── ☕ Reporting.java
+│       │               │   ├── ☕ Responsable.java
+│       │               │   ├── ☕ Role.java
+│       │               │   ├── ☕ Secteur.java
+│       │               │   ├── ☕ Statut.java
+│       │               │   ├── ☕ Udm.java
+│       │               │   ├── ☕ Utilisateur.java
+│       │               │   └── 🖼️ file.png
+│       │               ├── 📁 dto
+│       │               │   ├── ☕ ChangePasswordDto.java
+│       │               │   ├── ☕ HistoriqueDto.java
+│       │               │   ├── ☕ ImportExcelDto.java
+│       │               │   ├── ☕ ImportResultDto.java
+│       │               │   ├── ☕ ReportingDto.java
+│       │               │   ├── ☕ ReportingStatisticsDto.java
+│       │               │   └── ☕ UtilisateurDto.java
+│       │               ├── 📁 repository
+│       │               │   ├── ☕ HistoriqueRepository.java
+│       │               │   ├── ☕ ImportExcelRepository.java
+│       │               │   ├── ☕ ReportingRepository.java
+│       │               │   └── ☕ UtilisateurRepository.java
+│       │               ├── 📁 service
+│       │               │   ├── ☕ HistoriqueService.java
+│       │               │   ├── ☕ ImportExcelService.java
+│       │               │   ├── ☕ JpaUserDetailsService.java
+│       │               │   ├── ☕ ReportingService.java
+│       │               │   └── ☕ UtilisateurService.java
+│       │               ├── 📁 web
+│       │               │   ├── 📁 exception
+│       │               │   │   ├── ☕ ValidationError.java
+│       │               │   │   ├── ☕ ValidationErrorResponse.java
+│       │               │   │   └── ☕ ValidationExceptionHandler.java
+│       │               │   ├── 📁 mapper
+│       │               │   │   ├── ☕ HistoriqueMapper.java
+│       │               │   │   ├── ☕ ImportExcelMapper.java
+│       │               │   │   ├── ☕ ReportingMapper.java
+│       │               │   │   └── ☕ UtilisateurMapper.java
+│       │               │   ├── ☕ HistoriqueController.java
+│       │               │   ├── ☕ ImportExcelController.java
+│       │               │   ├── ☕ ReportingController.java
+│       │               │   └── ☕ UtilisateurController.java
+│       │               └── ☕ JphApplication.java
+│       └── 📁 resources
+│           └── 📄 application.properties
+├── ⚙️ .gitattributes
+├── ⚙️ .gitignore
+├── 📘 jhp.docx
+├── 📄 mvnw
+├── 📄 mvnw.cmd
+├── ⚙️ pom.xml
+└── 📘 ~$jhp.docx
 ```
 
 ---

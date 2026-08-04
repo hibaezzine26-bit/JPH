@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import SearchBar from '../../components/ui/SearchBar';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+import SectionHeading from '../../components/ui/SectionHeading';
+import Loading from '../../components/ui/Loading';
 
 interface ReportingDto {
   id?: number;
@@ -33,6 +39,26 @@ const secteurOptions = ['', 'AMMONIAC', 'SOUFRE', 'EXPORT', 'COMMUN'];
 const responsableOptions = ['', 'ATTOUCHI', 'BELYAZID', 'REGUIG', 'EL_HARKI'];
 const udmOptions = ['', 'PCE', 'ML', 'MC', 'U', 'KG'];
 
+const statusLabels: Record<string, string> = {
+  EN_COURS: 'En cours',
+  ATTENTE_LIVRAISON: 'Attente',
+  LIVRE: 'Livré',
+  ECARTE: 'Écarté',
+  ADJUGE: 'Adjugé',
+  LITIGE: 'Litige',
+  ANNULE: 'Annulé',
+};
+
+const statusVariants: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
+  EN_COURS: 'info',
+  ATTENTE_LIVRAISON: 'warning',
+  LIVRE: 'success',
+  ECARTE: 'danger',
+  ADJUGE: 'info',
+  LITIGE: 'danger',
+  ANNULE: 'danger',
+};
+
 const ReportingPage: React.FC = () => {
   const { user } = useAuth();
   const [reportings, setReportings] = useState<ReportingDto[]>([]);
@@ -57,9 +83,10 @@ const ReportingPage: React.FC = () => {
       if (filters.secteur) params.secteur = filters.secteur;
       if (filters.responsable) params.responsable = filters.responsable;
       if (filters.fournisseur) params.fournisseur = filters.fournisseur;
-
       const reportingsResponse = await api.get<ReportingDto[]>('/reportings', { params });
       setReportings(reportingsResponse.data);
+    } catch (error) {
+      setErrorMessage('Impossible de charger les reportings.');
     } finally {
       setLoading(false);
     }
@@ -87,7 +114,6 @@ const ReportingPage: React.FC = () => {
     codeSAP: '',
     description: '',
     uniteDeMesure: '',
-    // use NaN for numeric fields so the inputs can render empty strings
     quantite: NaN,
     secteur: '',
     commande: '',
@@ -157,9 +183,6 @@ const ReportingPage: React.FC = () => {
     const isEmptyField = (value: unknown) =>
       value === undefined || value === null || value === '' || (typeof value === 'number' && Number.isNaN(value));
 
-    // Required fields for saving a reporting.
-    // Removed some fields (UDM, Date notification, Date prévisionnelle, Délai livraison)
-    // so they are no longer mandatory in the UI validation.
     const requiredFields = [
       { value: editingReporting.numeroDA, label: 'DA' },
       { value: editingReporting.numeroDossier, label: 'Dossier' },
@@ -189,7 +212,6 @@ const ReportingPage: React.FC = () => {
 
     try {
       const isExisting = editingReporting.id != null;
-      // Build payload and sanitize empty values so the server/database get nulls
       const rawPayload: any = {
         ...editingReporting,
         utilisateurId: editingReporting.utilisateurId ?? user?.id,
@@ -254,381 +276,399 @@ const ReportingPage: React.FC = () => {
     setErrorMessage(null);
   };
 
+  const statusCounts = useMemo(
+    () =>
+      reportings.reduce(
+        (counts, item) => {
+          if (item.statut in counts) {
+            counts[item.statut] += 1;
+          }
+          return counts;
+        },
+        {
+          EN_COURS: 0,
+          ATTENTE_LIVRAISON: 0,
+          LIVRE: 0,
+          ECARTE: 0,
+          ADJUGE: 0,
+          LITIGE: 0,
+          ANNULE: 0,
+        } as Record<string, number>
+      ),
+    [reportings]
+  );
+
+  const totalCount = reportings.length;
+
   return (
-    <div className="container-fluid">
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-            <div>
-              <h2 className="h5 mb-1">Filtrer les reportings</h2>
-              <p className="text-muted mb-0">Affiner la liste par recherche, statut, secteur, fournisseur ou responsable.</p>
-            </div>
-            <button type="button" className="btn btn-primary" onClick={handleCreate}>
-              Ajouter une ligne
-            </button>
+    <div className="reporting-page">
+      <div className="ui-toolbar reporting-page__header">
+        <div>
+          <p className="ui-toolbar__subtitle">Gestion et suivi des reportings</p>
+          <h1>Reportings</h1>
+        </div>
+        <div className="ui-toolbar__right">
+          <Badge label={`${totalCount} éléments`} variant="info" />
+          <Button variant="primary" onClick={handleCreate}>
+            Ajouter une ligne
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <SectionHeading title="Filtrer les reportings" subtitle="Recherche personnalisée" />
+
+        <form id="reporting-filter-form" onSubmit={handleSubmit} className="filter-panel__row reporting-page__filters">
+          <div className="ui-form-group">
+            <label>Rechercher</label>
+            <SearchBar
+              value={filters.search}
+              onChange={(value) => setFilters({ ...filters, search: value })}
+              placeholder="Rechercher par DA, commande ou fournisseur"
+            />
           </div>
+          <div className="ui-form-group">
+            <label>Statut</label>
+            <select
+              value={filters.statut}
+              onChange={(event) => setFilters({ ...filters, statut: event.target.value })}
+              className="form-select"
+            >
+              {statutOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option || 'Tous les statuts'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="ui-form-group">
+            <label>Secteur</label>
+            <select
+              value={filters.secteur}
+              onChange={(event) => setFilters({ ...filters, secteur: event.target.value })}
+              className="form-select"
+            >
+              {secteurOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option || 'Tous les secteurs'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="ui-form-group">
+            <label>Responsable</label>
+            <select
+              value={filters.responsable}
+              onChange={(event) => setFilters({ ...filters, responsable: event.target.value })}
+              className="form-select"
+            >
+              {responsableOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option || 'Tous les responsables'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="ui-form-group">
+            <label>Fournisseur</label>
+            <input
+              value={filters.fournisseur}
+              onChange={(event) => setFilters({ ...filters, fournisseur: event.target.value })}
+              placeholder="Fournisseur"
+              className="form-control"
+            />
+          </div>
+        </form>
+
+        <div className="ui-toolbar reporting-page__actions">
+          <Button variant="ghost" onClick={handleReset} type="button">
+            Réinitialiser
+          </Button>
+          <Button variant="primary" type="submit" form="reporting-filter-form">
+            Appliquer
+          </Button>
+        </div>
+      </Card>
+
+      {editingReporting && (
+        <Card className="reporting-page__section">
+          <SectionHeading title="Modifier le reporting" subtitle="Edition rapide" />
+
           {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-          <form onSubmit={handleSubmit} className="row g-3">
-            <div className="col-md-3">
+
+          <form onSubmit={handleSave} className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">DA</label>
               <input
-                value={filters.search}
-                onChange={(event) => setFilters({ ...filters, search: event.target.value })}
-                placeholder="Rechercher..."
+                value={editingReporting.numeroDA}
+                onChange={(event) => updateEditingField('numeroDA', event.target.value)}
                 className="form-control"
               />
             </div>
-            <div className="col-md-3">
+            <div className="col-md-6">
+              <label className="form-label">Dossier</label>
+              <input
+                value={editingReporting.numeroDossier}
+                onChange={(event) => updateEditingField('numeroDossier', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">N°</label>
+              <input
+                value={editingReporting.numero}
+                onChange={(event) => updateEditingField('numero', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Code Oracle</label>
+              <input
+                value={editingReporting.codeOracle}
+                onChange={(event) => updateEditingField('codeOracle', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Code SAP</label>
+              <input
+                value={editingReporting.codeSAP}
+                onChange={(event) => updateEditingField('codeSAP', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-12">
+              <label className="form-label">Description</label>
+              <textarea
+                value={editingReporting.description ?? ''}
+                onChange={(event) => updateEditingField('description', event.target.value)}
+                className="form-control"
+                rows={3}
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">UDM</label>
               <select
-                value={filters.statut}
-                onChange={(event) => setFilters({ ...filters, statut: event.target.value })}
+                value={editingReporting.uniteDeMesure}
+                onChange={(event) => updateEditingField('uniteDeMesure', event.target.value)}
                 className="form-select"
               >
-                {statutOptions.map((option) => (
+                {udmOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option || 'Tous les statuts'}
+                    {option || 'UDM'}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="col-md-3">
+            <div className="col-md-4">
+              <label className="form-label">Quantité</label>
+              <input
+                type="number"
+                value={Number.isNaN(editingReporting.quantite) ? '' : editingReporting.quantite}
+                onChange={(event) => updateEditingField('quantite', parseFloat(event.target.value))}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Secteur</label>
               <select
-                value={filters.secteur}
-                onChange={(event) => setFilters({ ...filters, secteur: event.target.value })}
+                value={editingReporting.secteur}
+                onChange={(event) => updateEditingField('secteur', event.target.value)}
                 className="form-select"
               >
                 {secteurOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option || 'Tous les secteurs'}
+                    {option || 'Secteur'}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="col-md-3">
+            <div className="col-md-4">
+              <label className="form-label">CMD</label>
+              <input
+                value={editingReporting.commande}
+                onChange={(event) => updateEditingField('commande', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Fournisseur</label>
+              <input
+                value={editingReporting.fournisseur}
+                onChange={(event) => updateEditingField('fournisseur', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">% Livraison</label>
+              <input
+                type="number"
+                value={Number.isNaN(editingReporting.pourcentageLivraison) ? '' : editingReporting.pourcentageLivraison}
+                onChange={(event) => updateEditingField('pourcentageLivraison', parseInt(event.target.value, 10))}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Délai livraison</label>
+              <input
+                type="number"
+                value={Number.isNaN(editingReporting.delaiLivraison) ? '' : editingReporting.delaiLivraison}
+                onChange={(event) => updateEditingField('delaiLivraison', parseInt(event.target.value, 10))}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Date notification</label>
+              <input
+                type="date"
+                value={editingReporting.dateNotification}
+                onChange={(event) => updateEditingField('dateNotification', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Date prévisionnelle</label>
+              <input
+                type="date"
+                value={editingReporting.datePrevisionnelle}
+                onChange={(event) => updateEditingField('datePrevisionnelle', event.target.value)}
+                className="form-control"
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Statut livraison</label>
               <select
-                value={filters.responsable}
-                onChange={(event) => setFilters({ ...filters, responsable: event.target.value })}
+                value={editingReporting.statut}
+                onChange={(event) => updateEditingField('statut', event.target.value)}
+                className="form-select"
+              >
+                {statutOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option || 'Statut livraison'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Responsable DO</label>
+              <select
+                value={editingReporting.responsable}
+                onChange={(event) => updateEditingField('responsable', event.target.value)}
                 className="form-select"
               >
                 {responsableOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option || 'Tous les responsables'}
+                    {option || 'Responsable DO'}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="col-md-3">
+            <div className="col-md-4">
+              <label className="form-label">Utilisateur ID</label>
               <input
-                value={filters.fournisseur}
-                onChange={(event) => setFilters({ ...filters, fournisseur: event.target.value })}
-                placeholder="Fournisseur"
+                type="number"
+                value={editingReporting.utilisateurId}
+                onChange={(event) => updateEditingField('utilisateurId', parseInt(event.target.value, 10))}
                 className="form-control"
               />
             </div>
-            <div className="col-12 d-flex gap-2">
-              <button type="submit" className="btn btn-primary">
-                Appliquer
-              </button>
-              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                Réinitialiser
-              </button>
+            <div className="col-12">
+              <label className="form-label">Commentaire</label>
+              <textarea
+                value={editingReporting.commentaire ?? ''}
+                onChange={(event) => updateEditingField('commentaire', event.target.value)}
+                className="form-control"
+                rows={3}
+              />
+            </div>
+            <div className="col-12 d-flex gap-2 flex-wrap">
+              <Button variant="primary" type="submit" disabled={saveLoading}>
+                {saveLoading ? 'Enregistrement...' : 'Enregistrer'}
+              </Button>
+              <Button variant="ghost" type="button" onClick={handleCancelEdit}>
+                Annuler
+              </Button>
             </div>
           </form>
-        </div>
-      </div>
-
-      {editingReporting && (
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-              <div>
-                <h2 className="h5 mb-1">Modifier le reporting</h2>
-                <p className="text-muted mb-0">Mettre à jour les informations puis enregistrer.</p>
-              </div>
-              <button type="button" className="btn btn-outline-secondary" onClick={handleCancelEdit}>
-                Annuler
-              </button>
-            </div>
-            {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-            <form onSubmit={handleSave} className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label">DA</label>
-                <input
-                  value={editingReporting.numeroDA}
-                  onChange={(event) => updateEditingField('numeroDA', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Dossier</label>
-                <input
-                  value={editingReporting.numeroDossier}
-                  onChange={(event) => updateEditingField('numeroDossier', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">N°</label>
-                <input
-                  value={editingReporting.numero}
-                  onChange={(event) => updateEditingField('numero', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Code Oracle</label>
-                <input
-                  value={editingReporting.codeOracle}
-                  onChange={(event) => updateEditingField('codeOracle', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Code SAP</label>
-                <input
-                  value={editingReporting.codeSAP}
-                  onChange={(event) => updateEditingField('codeSAP', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-12">
-                <label className="form-label">Description</label>
-                <textarea
-                  value={editingReporting.description ?? ''}
-                  onChange={(event) => updateEditingField('description', event.target.value)}
-                  className="form-control"
-                  rows={3}
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">UDM</label>
-                <select
-                  value={editingReporting.uniteDeMesure}
-                  onChange={(event) => updateEditingField('uniteDeMesure', event.target.value)}
-                  className="form-select"
-                >
-                  {udmOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option || 'UDM'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Quantité</label>
-                <input
-                  type="number"
-                  value={Number.isNaN(editingReporting.quantite) ? '' : editingReporting.quantite}
-                  onChange={(event) => updateEditingField('quantite', parseFloat(event.target.value))}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Secteur</label>
-                <select
-                  value={editingReporting.secteur}
-                  onChange={(event) => updateEditingField('secteur', event.target.value)}
-                  className="form-select"
-                >
-                  {secteurOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option || 'Secteur'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">CMD</label>
-                <input
-                  value={editingReporting.commande}
-                  onChange={(event) => updateEditingField('commande', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Fournisseur</label>
-                <input
-                  value={editingReporting.fournisseur}
-                  onChange={(event) => updateEditingField('fournisseur', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">% Livraison</label>
-                <input
-                  type="number"
-                  value={Number.isNaN(editingReporting.pourcentageLivraison) ? '' : editingReporting.pourcentageLivraison}
-                  onChange={(event) => updateEditingField('pourcentageLivraison', parseInt(event.target.value, 10))}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Délai livraison</label>
-                <input
-                  type="number"
-                  value={Number.isNaN(editingReporting.delaiLivraison) ? '' : editingReporting.delaiLivraison}
-                  onChange={(event) => updateEditingField('delaiLivraison', parseInt(event.target.value, 10))}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Date notification</label>
-                <input
-                  type="date"
-                  value={editingReporting.dateNotification}
-                  onChange={(event) => updateEditingField('dateNotification', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Date prévisionnelle</label>
-                <input
-                  type="date"
-                  value={editingReporting.datePrevisionnelle}
-                  onChange={(event) => updateEditingField('datePrevisionnelle', event.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Statut livraison</label>
-                <select
-                  value={editingReporting.statut}
-                  onChange={(event) => updateEditingField('statut', event.target.value)}
-                  className="form-select"
-                >
-                  {statutOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option || 'Statut livraison'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Responsable DO</label>
-                <select
-                  value={editingReporting.responsable}
-                  onChange={(event) => updateEditingField('responsable', event.target.value)}
-                  className="form-select"
-                >
-                  {responsableOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option || 'Responsable DO'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-4">
-                <label className="form-label">Utilisateur ID</label>
-                <input
-                  type="number"
-                  value={editingReporting.utilisateurId}
-                  onChange={(event) => updateEditingField('utilisateurId', parseInt(event.target.value, 10))}
-                  className="form-control"
-                />
-              </div>
-              <div className="col-12">
-                <label className="form-label">Commentaire</label>
-                <textarea
-                  value={editingReporting.commentaire ?? ''}
-                  onChange={(event) => updateEditingField('commentaire', event.target.value)}
-                  className="form-control"
-                  rows={3}
-                />
-              </div>
-              <div className="col-12 d-flex gap-2 flex-wrap">
-                <button type="submit" className="btn btn-primary" disabled={saveLoading}>
-                  {saveLoading ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-                <button type="button" className="btn btn-outline-secondary" onClick={handleCancelEdit}>
-                  Annuler
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        </Card>
       )}
 
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
-            <div>
-              <h2 className="h5 mb-0">Liste des reportings</h2>
-              <p className="text-muted mb-0">Tous les reportings avec filtres, recherche et actions.</p>
-            </div>
-            <div className="d-flex gap-2 flex-wrap align-items-center">
-              <span className="badge bg-secondary py-2 px-3">{reportings.length} éléments</span>
-            </div>
-          </div>
-          <div className="table-responsive">
-            <table className="table table-striped align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th>N° DA</th>
-                  <th>Dossier</th>
-                  <th>N°</th>
-                  <th>Code Oracle</th>
-                  <th>Code SAP</th>
-                  <th>Description</th>
-                  <th>UDM</th>
-                  <th>Quantité</th>
-                  <th>Fournisseur</th>
-                  <th>CMD</th>
-                  <th>% Livraison</th>
-                  <th>Délai</th>
-                  <th>Date notif</th>
-                  <th>Date prévisionnelle</th>
-                  <th>Statut</th>
-                  <th>Responsable</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={17} className="text-center text-muted py-4">
-                      Chargement...
-                    </td>
-                  </tr>
-                ) : reportings.length === 0 ? (
-                  <tr>
-                    <td colSpan={17} className="text-center text-muted py-4">
-                      Aucun reporting trouvé.
-                    </td>
-                  </tr>
-                ) : (
-                  reportings.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.numeroDA}</td>
-                      <td>{item.numeroDossier}</td>
-                      <td>{item.numero}</td>
-                      <td>{item.codeOracle}</td>
-                      <td>{item.codeSAP}</td>
-                      <td>{item.description}</td>
-                      <td>{item.uniteDeMesure}</td>
-                      <td>{item.quantite ?? ''}</td>
-                      <td>{item.fournisseur}</td>
-                      <td>{item.commande}</td>
-                      <td>{item.pourcentageLivraison != null ? `${item.pourcentageLivraison}%` : ''}</td>
-                      <td>{item.delaiLivraison ?? ''}</td>
-                      <td>{item.dateNotification}</td>
-                      <td>{item.datePrevisionnelle}</td>
-                      <td>{item.statut}</td>
-                      <td>{item.responsable}</td>
-                      <td className="d-flex gap-2 flex-wrap">
-                        <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => handleEdit(item.id)}>
-                          Modifier
-                        </button>
-                        <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(item.id)}>
-                          Supprimer
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+      <Card>
+        <SectionHeading title="Liste des reportings" subtitle="Tableau moderne" />
+
+        {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+
+        <div className="reporting-page__status-row">
+          {Object.entries(statusCounts).map(([key, value]) => (
+            <Badge
+              key={key}
+              label={`${statusLabels[key] ?? key}: ${value}`}
+              variant={statusVariants[key] ?? 'default'}
+            />
+          ))}
         </div>
-      </div>
+
+        <div className="app-table-responsive">
+          <table className="app-table">
+            <thead>
+              <tr>
+                <th>N° DA</th>
+                <th>Dossier</th>
+                <th>N°</th>
+                <th>Code Oracle</th>
+                <th>Code SAP</th>
+                <th>Fournisseur</th>
+                <th>% Livraison</th>
+                <th>Statut</th>
+                <th>Responsable</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="text-center py-5">
+                    <Loading />
+                  </td>
+                </tr>
+              ) : reportings.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="text-center text-muted py-5">
+                    Aucun reporting trouvé.
+                  </td>
+                </tr>
+              ) : (
+                reportings.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.numeroDA}</td>
+                    <td>{item.numeroDossier}</td>
+                    <td>{item.numero}</td>
+                    <td>{item.codeOracle}</td>
+                    <td>{item.codeSAP}</td>
+                    <td>{item.fournisseur}</td>
+                    <td>{item.pourcentageLivraison != null ? `${item.pourcentageLivraison}%` : ''}</td>
+                    <td>
+                      <Badge
+                        label={statusLabels[item.statut] ?? item.statut}
+                        variant={statusVariants[item.statut] ?? 'default'}
+                      />
+                    </td>
+                    <td>{item.responsable}</td>
+                    <td className="d-flex gap-2 flex-wrap">
+                      <Button variant="ghost" onClick={() => handleEdit(item.id)} type="button">
+                        Modifier
+                      </Button>
+                      <Button variant="danger" onClick={() => handleDelete(item.id)} type="button">
+                        Supprimer
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 };
