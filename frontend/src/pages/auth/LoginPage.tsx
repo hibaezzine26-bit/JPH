@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Alert from '../../components/ui/Alert';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -20,50 +23,39 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-light min-vh-100 d-flex align-items-center justify-content-center">
-      <div className="card shadow-sm border-0" style={{ width: '100%', maxWidth: 420 }}>
-        <div className="card-body p-4">
-          <h2 className="h4 mb-3 text-center">Connexion</h2>
-          <p className="text-muted text-center mb-4">Saisissez votre email et votre mot de passe.</p>
+    <div className="ui-page-center">
+      <div className="ui-card" style={{ width: '100%', maxWidth: 420 }}>
+        <div>
+          <h2 className="h4 ui-text-center">Connexion</h2>
+          <p className="ui-text-muted ui-text-center" style={{ marginBottom: 24 }}>
+            Saisissez votre email et votre mot de passe.
+          </p>
 
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
+          {error && <Alert variant="danger">{error}</Alert>}
 
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="form-control"
-                placeholder="exemple@entreprise.com"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="password" className="form-label">
-                Mot de passe
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="form-control"
-                placeholder="••••••••"
-              />
-            </div>
-            <button type="submit" className="btn btn-primary w-100">
-              <p>Se connecter</p>
-            </button>
+            <Input
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="exemple@entreprise.com"
+            />
+            <Input
+              id="password"
+              label="Mot de passe"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+            />
+
+            <Button type="submit" variant="primary" className="ui-button--block">
+              Se connecter
+            </Button>
           </form>
         </div>
       </div>

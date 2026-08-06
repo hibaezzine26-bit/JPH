@@ -1,13 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
-
-interface User {
-  id: number;
-  nom: string;
-  prenom: string;
-  email: string;
-  role: string;
-}
+import authService from '../services/authService';
+import type { User } from '../types/user';
 
 interface AuthContextType {
   user: User | null;
@@ -23,12 +16,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchMe = async () => {
+  const fetchCurrentUser = async () => {
     try {
-      const response = await api.get('/utilisateurs/me');
+      const response = await authService.getCurrentUser();
       setUser(response.data);
     } catch (error) {
-      localStorage.removeItem('auth');
+      authService.logout();
       setUser(null);
     } finally {
       setLoading(false);
@@ -36,9 +29,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const auth = localStorage.getItem('auth');
-    if (auth) {
-      fetchMe();
+    const authHeader = localStorage.getItem('auth');
+    if (authHeader) {
+      fetchCurrentUser();
     } else {
       setLoading(false);
     }
@@ -46,23 +39,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, mdp: string) => {
     const authHeader = btoa(`${email}:${mdp}`);
-    localStorage.setItem('auth', authHeader);
-    try {
-      const response = await api.get('/utilisateurs/me');
-      setUser(response.data);
-    } catch (error) {
-      localStorage.removeItem('auth');
-      throw error;
-    }
+    const response = await authService.login(authHeader);
+    setUser(response.data);
   };
 
   const logout = () => {
-    localStorage.removeItem('auth');
+    authService.logout();
     setUser(null);
   };
 
-  const updateUser = (user: User) => {
-    setUser(user);
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
   };
 
   return (

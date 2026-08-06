@@ -1,35 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import api from '../../services/api';
+import reportingService from '../../services/reportingService';
+import type { ReportingDto } from '../../types/reporting';
+import { useAuth } from '../../context/AuthContext';
 import SearchBar from '../../components/ui/SearchBar';
 import StatCard from '../../components/ui/StatCard';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
 import Badge from '../../components/ui/Badge';
-
-interface ReportingDto {
-  id?: number;
-  numeroDA: string;
-  numeroDossier: string;
-  numero: string;
-  codeOracle: string;
-  codeSAP: string;
-  description?: string;
-  uniteDeMesure: string;
-  quantite: number;
-  secteur: string;
-  commande: string;
-  fournisseur: string;
-  pourcentageLivraison: number;
-  delaiLivraison: number;
-  dateNotification: string;
-  datePrevisionnelle: string;
-  statut: string;
-  responsable: string;
-  commentaire?: string;
-  dateCreation?: string;
-  dateModification?: string;
-}
+import Alert from '../../components/ui/Alert';
+import ReportingTable from '../../components/reporting/ReportingTable';
+import { getReportingColumnsByRole } from '../../utils/reportingColumns';
 
 const statutOptions = ['', 'EN_COURS', 'ATTENTE_LIVRAISON', 'LIVRE', 'ECARTE', 'ADJUGE', 'LITIGE', 'ANNULE'];
 const secteurOptions = ['', 'AMMONIAC', 'SOUFRE', 'EXPORT', 'COMMUN'];
@@ -45,19 +26,11 @@ const statusLabels: Record<string, string> = {
   ANNULE: 'Annulé',
 };
 
-const statusVariants: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
-  EN_COURS: 'info',
-  ATTENTE_LIVRAISON: 'warning',
-  LIVRE: 'success',
-  ECARTE: 'danger',
-  ADJUGE: 'info',
-  LITIGE: 'danger',
-  ANNULE: 'danger',
-};
 
 const statusCards = ['EN_COURS', 'LIVRE', 'ATTENTE_LIVRAISON', 'ECARTE', 'ADJUGE', 'LITIGE', 'ANNULE'];
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [reportings, setReportings] = useState<ReportingDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -81,7 +54,7 @@ const Dashboard: React.FC = () => {
       if (filters.responsable) params.responsable = filters.responsable;
       if (filters.fournisseur) params.fournisseur = filters.fournisseur;
       if (filters.sort) params.sort = filters.sort;
-      const response = await api.get<ReportingDto[]>('/reportings', { params });
+      const response = await reportingService.getAll(params);
       setReportings(response.data);
     } catch (error) {
       setErrorMessage('Impossible de charger les reportings.');
@@ -109,10 +82,7 @@ const Dashboard: React.FC = () => {
       if (filters.sort) params.sort = filters.sort;
       params.format = 'xlsx';
 
-      const response = await api.get('/reportings/export', {
-        params,
-        responseType: 'blob',
-      });
+      const response = await reportingService.exportReportings(params);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -154,6 +124,7 @@ const Dashboard: React.FC = () => {
   }, [reportings]);
 
   const totalCount = reportings.length;
+  const columns = React.useMemo(() => getReportingColumnsByRole(user?.role), [user?.role]);
   const chartData = statusCards.map((key) => ({
     key,
     label: statusLabels[key],
@@ -168,14 +139,16 @@ const Dashboard: React.FC = () => {
           <h1>Tableau de bord</h1>
           <p className="ui-toolbar__subtitle">Vue synthétique et actions rapides sur les reportings.</p>
         </div>
-        <div className="ui-toolbar__right">
-          <Button variant="ghost" className="ui-button--small" onClick={handleReset}>
-            Réinitialiser
-          </Button>
-          <Button variant="primary" className="ui-button--small" onClick={handleExport}>
-            Exporter
-          </Button>
-        </div>
+        {user?.role !== 'CONSULTANT' && (
+          <div className="ui-toolbar__right">
+            <Button variant="ghost" className="ui-button--small" onClick={handleReset}>
+              Réinitialiser
+            </Button>
+            <Button variant="primary" className="ui-button--small" onClick={handleExport}>
+              Exporter
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="ui-section ui-section--grid">
@@ -199,10 +172,10 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="filter-panel__row mb-4">
+        <div className="filter-panel__row" style={{ marginBottom: 24 }}>
           <div>
             <select
-              className="form-select"
+              className="ui-form-control"
               value={filters.statut}
               onChange={(event) => setFilters({ ...filters, statut: event.target.value })}
             >
@@ -215,7 +188,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div>
             <select
-              className="form-select"
+              className="ui-form-control"
               value={filters.secteur}
               onChange={(event) => setFilters({ ...filters, secteur: event.target.value })}
             >
@@ -228,7 +201,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div>
             <select
-              className="form-select"
+              className="ui-form-control"
               value={filters.responsable}
               onChange={(event) => setFilters({ ...filters, responsable: event.target.value })}
             >
@@ -242,15 +215,26 @@ const Dashboard: React.FC = () => {
           <div>
             <input
               type="text"
-              className="form-control"
+              className="ui-form-control"
               placeholder="Fournisseur"
               value={filters.fournisseur}
               onChange={(event) => setFilters({ ...filters, fournisseur: event.target.value })}
             />
           </div>
+          <div>
+            <select
+              className="ui-form-control"
+              value={filters.sort}
+              onChange={(event) => setFilters({ ...filters, sort: event.target.value })}
+            >
+              <option value="">Trier par</option>
+              <option value="id,asc">ID croissant</option>
+              <option value="id,desc">ID décroissant</option>
+            </select>
+          </div>
         </div>
 
-        {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
         <div className="ui-section">
           <Card>
@@ -279,34 +263,9 @@ const Dashboard: React.FC = () => {
             {loading ? (
               <Loading />
             ) : reportings.length === 0 ? (
-              <div className="text-muted">Aucun reporting trouvé.</div>
+              <div className="ui-text-muted">Aucun reporting trouvé.</div>
             ) : (
-              <div className="app-table-responsive">
-                <table className="app-table">
-                  <thead>
-                    <tr>
-                      <th>DA</th>
-                      <th>Commande</th>
-                      <th>Fournisseur</th>
-                      <th>Statut</th>
-                      <th>Responsable</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportings.slice(0, 6).map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.numeroDA}</td>
-                        <td>{item.commande}</td>
-                        <td>{item.fournisseur}</td>
-                        <td>
-                          <Badge label={statusLabels[item.statut] ?? item.statut} variant={statusVariants[item.statut] ?? 'default'} />
-                        </td>
-                        <td>{item.responsable}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ReportingTable reportings={reportings} columns={columns} loading={loading} />
             )}
           </Card>
         </div>

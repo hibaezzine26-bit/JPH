@@ -6,7 +6,6 @@ import Navbar from './Navbar';
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const stored = localStorage.getItem('theme');
     return stored === 'dark' ? 'dark' : 'light';
@@ -32,10 +31,15 @@ const Layout: React.FC = () => {
   }, [user]);
 
   return (
-    <div className={collapsed ? 'app-shell app-shell--collapsed' : 'app-shell'}>
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} isConsultant={user?.role === 'CONSULTANT'} onLogout={handleLogout} />
+    <div className="app-shell">
+      <Sidebar isConsultant={user?.role === 'CONSULTANT'} />
       <div className="app-main">
-        <Navbar theme={theme} onToggleTheme={toggleTheme} userName={userName} />
+        <Navbar
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          userName={userName}
+          onLogout={handleLogout}
+        />
         <main className="app-content">
           <Outlet />
         </main>

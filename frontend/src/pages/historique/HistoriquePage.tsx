@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../services/api';
+import historiqueService from '../../services/historiqueService';
 
 interface HistoriqueDto {
   id: number;
@@ -17,7 +17,7 @@ const HistoriquePage: React.FC = () => {
   const loadHistoriques = async () => {
     setLoading(true);
     try {
-      const response = await api.get<HistoriqueDto[]>('/historiques');
+      const response = await historiqueService.getAll();
       setHistoriques(response.data);
     } finally {
       setLoading(false);
@@ -29,21 +29,25 @@ const HistoriquePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="container-fluid">
-      <div className="card shadow-sm mb-4">
-        <div className="card-body d-flex flex-column flex-md-row justify-content-between gap-3 align-items-start">
+    <div className="ui-page">
+      <div className="ui-card" style={{ marginBottom: 24 }}>
+        <div className="ui-toolbar" style={{ alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
           <div>
-            <p className="text-uppercase text-muted small mb-1">Historique</p>
-            <h1 className="h4 mb-0">Suivi des actions</h1>
+            <p className="ui-form-group__label" style={{ textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+              Historique
+            </p>
+            <h1 className="h4" style={{ margin: 0 }}>
+              Suivi des actions
+            </h1>
           </div>
-          <span className="badge bg-secondary py-2 px-3">{historiques.length} événements enregistrés</span>
+          <span className="ui-badge ui-badge--default">{historiques.length} événements enregistrés</span>
         </div>
       </div>
 
-      <div className="card shadow-sm">
-        <div className="card-body table-responsive">
-          <table className="table table-striped mb-0">
-            <thead className="table-light">
+      <div className="ui-card">
+        <div className="app-table-responsive">
+          <table className="app-table app-table--striped">
+            <thead className="app-table__head">
               <tr>
                 <th>Action</th>
                 <th>Ancienne valeur</th>
@@ -55,13 +59,13 @@ const HistoriquePage: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted py-4">
+                  <td colSpan={5} className="ui-text-center ui-text-muted" style={{ padding: '1rem 0' }}>
                     Chargement...
                   </td>
                 </tr>
               ) : historiques.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted py-4">
+                  <td colSpan={5} className="ui-text-center ui-text-muted" style={{ padding: '1rem 0' }}>
                     Aucun historique trouvé.
                   </td>
                 </tr>

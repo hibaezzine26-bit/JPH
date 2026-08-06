@@ -1,38 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
+import reportingService from '../../services/reportingService';
+import type { ReportingDto } from '../../types/reporting';
+import Alert from '../../components/ui/Alert';
 import SearchBar from '../../components/ui/SearchBar';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
+import Input from '../../components/ui/Input';
 import SectionHeading from '../../components/ui/SectionHeading';
-import Loading from '../../components/ui/Loading';
-
-interface ReportingDto {
-  id?: number;
-  numeroDA: string;
-  numeroDossier: string;
-  numero: string;
-  codeOracle: string;
-  codeSAP: string;
-  description?: string;
-  uniteDeMesure: string;
-  quantite: number;
-  secteur: string;
-  commande: string;
-  fournisseur: string;
-  pourcentageLivraison: number;
-  delaiLivraison: number;
-  dateNotification: string;
-  datePrevisionnelle: string;
-  statut: string;
-  responsable: string;
-  utilisateurId?: number;
-  commentaire?: string;
-  dateCreation?: string;
-  dateModification?: string;
-}
+import ReportingTable from '../../components/reporting/ReportingTable';
+import { getReportingColumnsByRole } from '../../utils/reportingColumns';
 
 const statutOptions = ['', 'EN_COURS', 'ATTENTE_LIVRAISON', 'LIVRE', 'ECARTE', 'ADJUGE', 'LITIGE', 'ANNULE'];
 const secteurOptions = ['', 'AMMONIAC', 'SOUFRE', 'EXPORT', 'COMMUN'];
@@ -83,7 +62,7 @@ const ReportingPage: React.FC = () => {
       if (filters.secteur) params.secteur = filters.secteur;
       if (filters.responsable) params.responsable = filters.responsable;
       if (filters.fournisseur) params.fournisseur = filters.fournisseur;
-      const reportingsResponse = await api.get<ReportingDto[]>('/reportings', { params });
+      const reportingsResponse = await reportingService.getAll(params);
       setReportings(reportingsResponse.data);
     } catch (error) {
       setErrorMessage('Impossible de charger les reportings.');
@@ -140,7 +119,7 @@ const ReportingPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      const response = await api.get<ReportingDto>(`/reportings/${id}`);
+      const response = await reportingService.getById(id);
       setEditingReporting(response.data);
       setErrorMessage(null);
     } catch (error) {
@@ -160,7 +139,7 @@ const ReportingPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      await api.delete(`/reportings/${id}`);
+      await reportingService.remove(id);
       await loadReportings();
     } catch (error) {
       setErrorMessage('Impossible de supprimer le reporting.');
@@ -169,7 +148,7 @@ const ReportingPage: React.FC = () => {
     }
   };
 
-  const updateEditingField = (field: keyof ReportingDto, value: string | number | undefined) => {
+  const updateEditingField = (field: keyof ReportingDto, value: string | number | null | undefined) => {
     if (!editingReporting) return;
     setEditingReporting({ ...editingReporting, [field]: value } as ReportingDto);
   };
@@ -211,7 +190,8 @@ const ReportingPage: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      const isExisting = editingReporting.id != null;
+      const reportingId = editingReporting.id;
+      const isExisting = reportingId != null;
       const rawPayload: any = {
         ...editingReporting,
         utilisateurId: editingReporting.utilisateurId ?? user?.id,
@@ -237,9 +217,9 @@ const ReportingPage: React.FC = () => {
       }
 
       if (isExisting) {
-        await api.put<ReportingDto>(`/reportings/${editingReporting.id}`, payload);
+        await reportingService.update(reportingId, payload);
       } else {
-        await api.post<ReportingDto>('/reportings', payload);
+        await reportingService.create(payload);
       }
       setEditingReporting(null);
       await loadReportings();
@@ -297,8 +277,7 @@ const ReportingPage: React.FC = () => {
       ),
     [reportings]
   );
-
-  const totalCount = reportings.length;
+  const columns = useMemo(() => getReportingColumnsByRole(user?.role), [user?.role]);
 
   return (
     <div className="reporting-page">
@@ -308,9 +287,8 @@ const ReportingPage: React.FC = () => {
           <h1>Reportings</h1>
         </div>
         <div className="ui-toolbar__right">
-          <Badge label={`${totalCount} éléments`} variant="info" />
           <Button variant="primary" onClick={handleCreate}>
-            Ajouter une ligne
+            Ajouter un reporting
           </Button>
         </div>
       </div>
@@ -332,7 +310,7 @@ const ReportingPage: React.FC = () => {
             <select
               value={filters.statut}
               onChange={(event) => setFilters({ ...filters, statut: event.target.value })}
-              className="form-select"
+              className="ui-form-control"
             >
               {statutOptions.map((option) => (
                 <option key={option} value={option}>
@@ -346,7 +324,7 @@ const ReportingPage: React.FC = () => {
             <select
               value={filters.secteur}
               onChange={(event) => setFilters({ ...filters, secteur: event.target.value })}
-              className="form-select"
+              className="ui-form-control"
             >
               {secteurOptions.map((option) => (
                 <option key={option} value={option}>
@@ -360,7 +338,7 @@ const ReportingPage: React.FC = () => {
             <select
               value={filters.responsable}
               onChange={(event) => setFilters({ ...filters, responsable: event.target.value })}
-              className="form-select"
+              className="ui-form-control"
             >
               {responsableOptions.map((option) => (
                 <option key={option} value={option}>
@@ -375,7 +353,7 @@ const ReportingPage: React.FC = () => {
               value={filters.fournisseur}
               onChange={(event) => setFilters({ ...filters, fournisseur: event.target.value })}
               placeholder="Fournisseur"
-              className="form-control"
+              className="ui-form-control"
             />
           </div>
         </form>
@@ -394,64 +372,59 @@ const ReportingPage: React.FC = () => {
         <Card className="reporting-page__section">
           <SectionHeading title="Modifier le reporting" subtitle="Edition rapide" />
 
-          {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
-          <form onSubmit={handleSave} className="row g-3">
-            <div className="col-md-6">
-              <label className="form-label">DA</label>
-              <input
+          <form onSubmit={handleSave} className="ui-form-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(240px, 1fr))' }}>
+            <div className="ui-form-group">
+              <Input
+                label="DA"
                 value={editingReporting.numeroDA}
                 onChange={(event) => updateEditingField('numeroDA', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Dossier</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Dossier"
                 value={editingReporting.numeroDossier}
                 onChange={(event) => updateEditingField('numeroDossier', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">N°</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="N°"
                 value={editingReporting.numero}
                 onChange={(event) => updateEditingField('numero', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Code Oracle</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Code Oracle"
                 value={editingReporting.codeOracle}
                 onChange={(event) => updateEditingField('codeOracle', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Code SAP</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Code SAP"
                 value={editingReporting.codeSAP}
                 onChange={(event) => updateEditingField('codeSAP', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-12">
-              <label className="form-label">Description</label>
+            <div className="ui-form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="ui-form-group__label">Description</label>
               <textarea
                 value={editingReporting.description ?? ''}
                 onChange={(event) => updateEditingField('description', event.target.value)}
-                className="form-control"
+                className="ui-form-control"
                 rows={3}
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">UDM</label>
+            <div className="ui-form-group">
+              <label className="ui-form-group__label">UDM</label>
               <select
                 value={editingReporting.uniteDeMesure}
                 onChange={(event) => updateEditingField('uniteDeMesure', event.target.value)}
-                className="form-select"
+                className="ui-form-control"
               >
                 {udmOptions.map((option) => (
                   <option key={option} value={option}>
@@ -460,21 +433,20 @@ const ReportingPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Quantité</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Quantité"
                 type="number"
-                value={Number.isNaN(editingReporting.quantite) ? '' : editingReporting.quantite}
-                onChange={(event) => updateEditingField('quantite', parseFloat(event.target.value))}
-                className="form-control"
+                value={editingReporting.quantite ?? ''}
+                onChange={(event) => updateEditingField('quantite', event.target.value ? parseFloat(event.target.value) : null)}
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Secteur</label>
+            <div className="ui-form-group">
+              <label className="ui-form-group__label">Secteur</label>
               <select
                 value={editingReporting.secteur}
                 onChange={(event) => updateEditingField('secteur', event.target.value)}
-                className="form-select"
+                className="ui-form-control"
               >
                 {secteurOptions.map((option) => (
                   <option key={option} value={option}>
@@ -483,64 +455,60 @@ const ReportingPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
-              <label className="form-label">CMD</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="CMD"
                 value={editingReporting.commande}
                 onChange={(event) => updateEditingField('commande', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Fournisseur</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Fournisseur"
                 value={editingReporting.fournisseur}
                 onChange={(event) => updateEditingField('fournisseur', event.target.value)}
-                className="form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">% Livraison</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="% Livraison"
                 type="number"
-                value={Number.isNaN(editingReporting.pourcentageLivraison) ? '' : editingReporting.pourcentageLivraison}
-                onChange={(event) => updateEditingField('pourcentageLivraison', parseInt(event.target.value, 10))}
-                className="form-control"
+                value={editingReporting.pourcentageLivraison ?? ''}
+                onChange={(event) => updateEditingField('pourcentageLivraison', event.target.value ? parseInt(event.target.value, 10) : null)}
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Délai livraison</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Délai livraison"
                 type="number"
-                value={Number.isNaN(editingReporting.delaiLivraison) ? '' : editingReporting.delaiLivraison}
-                onChange={(event) => updateEditingField('delaiLivraison', parseInt(event.target.value, 10))}
-                className="form-control"
+                value={editingReporting.delaiLivraison ?? ''}
+                onChange={(event) => updateEditingField('delaiLivraison', event.target.value ? parseInt(event.target.value, 10) : null)}
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Date notification</label>
+            <div className="ui-form-group">
+              <label className="ui-form-group__label">Date notification</label>
               <input
                 type="date"
                 value={editingReporting.dateNotification}
                 onChange={(event) => updateEditingField('dateNotification', event.target.value)}
-                className="form-control"
+                className="ui-form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Date prévisionnelle</label>
+            <div className="ui-form-group">
+              <label className="ui-form-group__label">Date prévisionnelle</label>
               <input
                 type="date"
                 value={editingReporting.datePrevisionnelle}
                 onChange={(event) => updateEditingField('datePrevisionnelle', event.target.value)}
-                className="form-control"
+                className="ui-form-control"
               />
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Statut livraison</label>
+            <div className="ui-form-group">
+              <label className="ui-form-group__label">Statut livraison</label>
               <select
                 value={editingReporting.statut}
                 onChange={(event) => updateEditingField('statut', event.target.value)}
-                className="form-select"
+                className="ui-form-control"
               >
                 {statutOptions.map((option) => (
                   <option key={option} value={option}>
@@ -549,12 +517,12 @@ const ReportingPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Responsable DO</label>
+            <div className="ui-form-group">
+              <label className="ui-form-group__label">Responsable DO</label>
               <select
                 value={editingReporting.responsable}
                 onChange={(event) => updateEditingField('responsable', event.target.value)}
-                className="form-select"
+                className="ui-form-control"
               >
                 {responsableOptions.map((option) => (
                   <option key={option} value={option}>
@@ -563,25 +531,24 @@ const ReportingPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
-              <label className="form-label">Utilisateur ID</label>
-              <input
+            <div className="ui-form-group">
+              <Input
+                label="Utilisateur ID"
                 type="number"
-                value={editingReporting.utilisateurId}
-                onChange={(event) => updateEditingField('utilisateurId', parseInt(event.target.value, 10))}
-                className="form-control"
+                value={editingReporting.utilisateurId ?? ''}
+                onChange={(event) => updateEditingField('utilisateurId', event.target.value ? parseInt(event.target.value, 10) : null)}
               />
             </div>
-            <div className="col-12">
-              <label className="form-label">Commentaire</label>
+            <div className="ui-form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="ui-form-group__label">Commentaire</label>
               <textarea
                 value={editingReporting.commentaire ?? ''}
                 onChange={(event) => updateEditingField('commentaire', event.target.value)}
-                className="form-control"
+                className="ui-form-control"
                 rows={3}
               />
             </div>
-            <div className="col-12 d-flex gap-2 flex-wrap">
+            <div className="ui-form-actions" style={{ gridColumn: '1 / -1' }}>
               <Button variant="primary" type="submit" disabled={saveLoading}>
                 {saveLoading ? 'Enregistrement...' : 'Enregistrer'}
               </Button>
@@ -596,7 +563,7 @@ const ReportingPage: React.FC = () => {
       <Card>
         <SectionHeading title="Liste des reportings" subtitle="Tableau moderne" />
 
-        {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
         <div className="reporting-page__status-row">
           {Object.entries(statusCounts).map(([key, value]) => (
@@ -608,66 +575,13 @@ const ReportingPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="app-table-responsive">
-          <table className="app-table">
-            <thead>
-              <tr>
-                <th>N° DA</th>
-                <th>Dossier</th>
-                <th>N°</th>
-                <th>Code Oracle</th>
-                <th>Code SAP</th>
-                <th>Fournisseur</th>
-                <th>% Livraison</th>
-                <th>Statut</th>
-                <th>Responsable</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={10} className="text-center py-5">
-                    <Loading />
-                  </td>
-                </tr>
-              ) : reportings.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="text-center text-muted py-5">
-                    Aucun reporting trouvé.
-                  </td>
-                </tr>
-              ) : (
-                reportings.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.numeroDA}</td>
-                    <td>{item.numeroDossier}</td>
-                    <td>{item.numero}</td>
-                    <td>{item.codeOracle}</td>
-                    <td>{item.codeSAP}</td>
-                    <td>{item.fournisseur}</td>
-                    <td>{item.pourcentageLivraison != null ? `${item.pourcentageLivraison}%` : ''}</td>
-                    <td>
-                      <Badge
-                        label={statusLabels[item.statut] ?? item.statut}
-                        variant={statusVariants[item.statut] ?? 'default'}
-                      />
-                    </td>
-                    <td>{item.responsable}</td>
-                    <td className="d-flex gap-2 flex-wrap">
-                      <Button variant="ghost" onClick={() => handleEdit(item.id)} type="button">
-                        Modifier
-                      </Button>
-                      <Button variant="danger" onClick={() => handleDelete(item.id)} type="button">
-                        Supprimer
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ReportingTable
+          reportings={reportings}
+          columns={columns}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </Card>
     </div>
   );

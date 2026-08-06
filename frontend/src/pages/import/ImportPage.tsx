@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import api from '../../services/api';
+import reportingService from '../../services/reportingService';
+import Alert from '../../components/ui/Alert';
+import Button from '../../components/ui/Button';
 
 const ImportPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -28,7 +30,7 @@ const ImportPage: React.FC = () => {
 
     setUploading(true);
     try {
-      const response = await api.post('/reportings/import', formData);
+      const response = await reportingService.importFile(formData);
       setMessage(response.data || 'Fichier importé avec succès.');
       setSelectedFile(null);
     } catch (uploadError: any) {
@@ -72,17 +74,19 @@ const ImportPage: React.FC = () => {
   };
 
   return (
-    <div className="container-fluid py-4">
-      <div className="card border-0 shadow-sm mx-auto" style={{ maxWidth: 720 }}>
-        <div className="card-body p-4">
-          <h1 className="h4 mb-3">Importer un fichier Excel</h1>
+    <div className="ui-page">
+      <div className="ui-card" style={{ maxWidth: 720, margin: '0 auto' }}>
+        <div>
+          <h1 className="h4" style={{ marginBottom: 16 }}>
+            Importer un fichier Excel
+          </h1>
 
-          {message && <div className="alert alert-success">{message}</div>}
-          {error && <div className="alert alert-danger">{error}</div>}
+          {message && <Alert variant="success">{message}</Alert>}
+          {error && <Alert variant="danger">{error}</Alert>}
 
           <form onSubmit={handleUpload}>
-            <div className="mb-4">
-              <label htmlFor="fileImport" className="form-label fw-semibold">
+            <div className="ui-form-group">
+              <label htmlFor="fileImport" className="ui-form-group__label">
                 Fichier Excel
               </label>
               <input
@@ -90,20 +94,24 @@ const ImportPage: React.FC = () => {
                 type="file"
                 accept=".xlsx,.xls"
                 onChange={handleFileChange}
-                className="form-control"
+                className="ui-form-control"
               />
             </div>
             {selectedFile && (
-              <div className="mb-4 text-muted">Fichier sélectionné : {selectedFile.name}</div>
+              <div className="ui-text-muted" style={{ marginBottom: 24 }}>
+                Fichier sélectionné : {selectedFile.name}
+              </div>
             )}
-            <button type="submit" disabled={uploading || !selectedFile} className="btn btn-primary w-100 mb-4">
+            <Button type="submit" variant="primary" className="ui-button--block" disabled={uploading || !selectedFile}>
               {uploading ? 'Importation...' : 'Importer'}
-            </button>
+            </Button>
           </form>
 
-          <div>
-            <p className="fw-semibold mb-2">Format de données attendu</p>
-            <ol className="ps-3 mb-0">
+          <div style={{ marginTop: 28 }}>
+            <p className="ui-form-group__label" style={{ marginBottom: 8 }}>
+              Format de données attendu
+            </p>
+            <ol className="ui-list">
               <li>DA</li>
               <li>Dossier</li>
               <li>N°</li>
