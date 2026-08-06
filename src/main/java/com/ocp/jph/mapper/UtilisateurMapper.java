@@ -1,4 +1,4 @@
-package com.ocp.jph.web.mapper;
+package com.ocp.jph.mapper;
 
 import org.springframework.stereotype.Component;
 

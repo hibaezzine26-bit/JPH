@@ -1,4 +1,4 @@
-package com.ocp.jph.web.exception;
+package com.ocp.jph.exception;
 
 import java.util.List;
 

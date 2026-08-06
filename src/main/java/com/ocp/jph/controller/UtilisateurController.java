@@ -1,4 +1,4 @@
-package com.ocp.jph.web;
+package com.ocp.jph.controller;
 
 import java.net.URI;
 import java.security.Principal;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ocp.jph.dto.ChangePasswordDto;
 import com.ocp.jph.dto.UtilisateurDto;
 import com.ocp.jph.entity.Utilisateur;
+import com.ocp.jph.mapper.UtilisateurMapper;
 import com.ocp.jph.service.UtilisateurService;
-import com.ocp.jph.web.mapper.UtilisateurMapper;
 
 import jakarta.validation.Valid;
 

@@ -1,4 +1,4 @@
-package com.ocp.jph.web;
+package com.ocp.jph.controller;
 
 import java.io.IOException;
 import java.net.URI;
@@ -25,10 +25,10 @@ import com.ocp.jph.entity.Reporting;
 import com.ocp.jph.entity.Responsable;
 import com.ocp.jph.entity.Secteur;
 import com.ocp.jph.entity.Statut;
+import com.ocp.jph.mapper.HistoriqueMapper;
+import com.ocp.jph.mapper.ReportingMapper;
 import com.ocp.jph.service.HistoriqueService;
 import com.ocp.jph.service.ReportingService;
-import com.ocp.jph.web.mapper.HistoriqueMapper;
-import com.ocp.jph.web.mapper.ReportingMapper;
 
 import jakarta.validation.Valid;
 

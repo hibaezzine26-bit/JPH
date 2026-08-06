@@ -1,4 +1,4 @@
-package com.ocp.jph.web.mapper;
+package com.ocp.jph.mapper;
 
 import java.util.Optional;
 

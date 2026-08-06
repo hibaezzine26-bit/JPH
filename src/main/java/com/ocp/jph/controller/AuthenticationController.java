@@ -1,4 +1,4 @@
-package com.ocp.jph.security;
+package com.ocp.jph.controller;
 
 import java.util.Map;
 
@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ocp.jph.service.JpaUserDetailsService;
+import com.ocp.jph.security.JpaUserDetailsService;
+import com.ocp.jph.security.JwtService;
+import com.ocp.jph.security.RefreshTokenRequest;
 
 @RestController
 @RequestMapping("/api/auth")

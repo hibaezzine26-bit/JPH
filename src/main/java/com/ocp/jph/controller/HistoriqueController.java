@@ -1,4 +1,4 @@
-package com.ocp.jph.web;
+package com.ocp.jph.controller;
 
 import java.net.URI;
 import java.util.List;
@@ -13,44 +13,44 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ocp.jph.dto.ImportExcelDto;
-import com.ocp.jph.entity.ImportExcel;
-import com.ocp.jph.service.ImportExcelService;
-import com.ocp.jph.web.mapper.ImportExcelMapper;
+import com.ocp.jph.dto.HistoriqueDto;
+import com.ocp.jph.entity.Historique;
+import com.ocp.jph.mapper.HistoriqueMapper;
+import com.ocp.jph.service.HistoriqueService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/imports")
-public class ImportExcelController {
-    private final ImportExcelService service;
-    private final ImportExcelMapper mapper;
+@RequestMapping("/api/historiques")
+public class HistoriqueController {
+    private final HistoriqueService service;
+    private final HistoriqueMapper mapper;
 
-    public ImportExcelController(ImportExcelService service, ImportExcelMapper mapper) {
+    public HistoriqueController(HistoriqueService service, HistoriqueMapper mapper) {
         this.service = service;
         this.mapper = mapper;
     }
 
     @GetMapping
-    public List<ImportExcelDto> list() {
+    public List<HistoriqueDto> list() {
         return service.findAll().stream().map(mapper::toDto).toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ImportExcelDto> get(@PathVariable Long id) {
+    public ResponseEntity<HistoriqueDto> get(@PathVariable Long id) {
         return service.findById(id).map(mapper::toDto).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<ImportExcelDto> create(@Valid @RequestBody ImportExcelDto e) {
-        ImportExcel saved = service.save(mapper.toEntity(e));
-        return ResponseEntity.created(URI.create("/api/imports/" + saved.getId())).body(mapper.toDto(saved));
+    public ResponseEntity<HistoriqueDto> create(@Valid @RequestBody HistoriqueDto h) {
+        Historique saved = service.save(mapper.toEntity(h));
+        return ResponseEntity.created(URI.create("/api/historiques/" + saved.getId())).body(mapper.toDto(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ImportExcelDto> update(@PathVariable Long id, @Valid @RequestBody ImportExcelDto e) {
-        e.setId(id);
-        ImportExcel saved = service.save(mapper.toEntity(e));
+    public ResponseEntity<HistoriqueDto> update(@PathVariable Long id, @Valid @RequestBody HistoriqueDto h) {
+        h.setId(id);
+        Historique saved = service.save(mapper.toEntity(h));
         return ResponseEntity.ok(mapper.toDto(saved));
     }
 
