@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ocp.jph.domain.Utilisateur;
 import com.ocp.jph.dto.ChangePasswordDto;
 import com.ocp.jph.dto.UtilisateurDto;
+import com.ocp.jph.entity.Utilisateur;
 import com.ocp.jph.service.UtilisateurService;
 import com.ocp.jph.web.mapper.UtilisateurMapper;
 

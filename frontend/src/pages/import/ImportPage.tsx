@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import reportingService from '../../services/reportingService';
-import Alert from '../../components/ui/Alert';
-import Button from '../../components/ui/Button';
+import Alert from '../../components/common/Alert';
+import Button from '../../components/common/Button';
 
 const ImportPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

@@ -28,14 +28,14 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 
-import com.ocp.jph.domain.Historique;
-import com.ocp.jph.domain.Reporting;
-import com.ocp.jph.domain.Responsable;
-import com.ocp.jph.domain.Secteur;
-import com.ocp.jph.domain.Statut;
-import com.ocp.jph.domain.Udm;
 import com.ocp.jph.dto.ImportResultDto;
 import com.ocp.jph.dto.ReportingStatisticsDto;
+import com.ocp.jph.entity.Historique;
+import com.ocp.jph.entity.Reporting;
+import com.ocp.jph.entity.Responsable;
+import com.ocp.jph.entity.Secteur;
+import com.ocp.jph.entity.Statut;
+import com.ocp.jph.entity.Udm;
 import com.ocp.jph.repository.ReportingRepository;
 
 @Service

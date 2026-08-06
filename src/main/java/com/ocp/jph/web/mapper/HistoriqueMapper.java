@@ -2,9 +2,9 @@ package com.ocp.jph.web.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.ocp.jph.domain.Historique;
-import com.ocp.jph.domain.Reporting;
 import com.ocp.jph.dto.HistoriqueDto;
+import com.ocp.jph.entity.Historique;
+import com.ocp.jph.entity.Reporting;
 
 @Component
 public class HistoriqueMapper {

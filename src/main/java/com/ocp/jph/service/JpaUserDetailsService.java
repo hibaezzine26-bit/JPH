@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.ocp.jph.domain.Utilisateur;
+import com.ocp.jph.entity.Utilisateur;
 import com.ocp.jph.repository.UtilisateurRepository;
 
 @Service

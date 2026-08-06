@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Alert from '../../components/ui/Alert';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+import Alert from '../../components/common/Alert';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -39,7 +39,7 @@ const LoginPage: React.FC = () => {
               label="Email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               required
               placeholder="exemple@entreprise.com"
             />
@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
               label="Mot de passe"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
             />

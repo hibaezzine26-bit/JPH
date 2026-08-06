@@ -1,6 +1,6 @@
 # File Tree: jph
 
-**Generated:** 8/6/2026, 9:50:08 AM
+**Generated:** 8/6/2026, 10:52:40 AM
 **Root Path:** `c:\Users\HP\Documents\jph`
 
 ```
@@ -18,13 +18,7 @@
 │   │   │   ├── 🖼️ react.svg
 │   │   │   └── 🖼️ vite.svg
 │   │   ├── 📁 components
-│   │   │   ├── 📁 layout
-│   │   │   │   ├── 📄 Layout.tsx
-│   │   │   │   ├── 📄 Navbar.tsx
-│   │   │   │   └── 📄 Sidebar.tsx
-│   │   │   ├── 📁 reporting
-│   │   │   │   └── 📄 ReportingTable.tsx
-│   │   │   ├── 📁 ui
+│   │   │   ├── 📁 common
 │   │   │   │   ├── 📄 Alert.tsx
 │   │   │   │   ├── 📄 Badge.tsx
 │   │   │   │   ├── 📄 Button.tsx
@@ -39,7 +33,15 @@
 │   │   │   │   ├── 📄 StatCard.tsx
 │   │   │   │   ├── 📄 Table.tsx
 │   │   │   │   └── 📄 Typography.tsx
+│   │   │   ├── 📁 layout
+│   │   │   │   ├── 📄 Layout.tsx
+│   │   │   │   ├── 📄 Navbar.tsx
+│   │   │   │   └── 📄 Sidebar.tsx
+│   │   │   ├── 📁 reporting
+│   │   │   │   └── 📄 ReportingTable.tsx
+│   │   │   ├── 📁 ui
 │   │   │   └── 📄 ProtectedRoute.tsx
+│   │   ├── 📁 constants
 │   │   ├── 📁 context
 │   │   │   └── 📄 AuthContext.tsx
 │   │   ├── 📁 hooks
@@ -100,16 +102,8 @@
 │       │               │   ├── ☕ SecurityConfig.java
 │       │               │   ├── ☕ UserDataInitializer.java
 │       │               │   └── 🖼️ file.png
+│       │               ├── 📁 controller
 │       │               ├── 📁 domain
-│       │               │   ├── ☕ Historique.java
-│       │               │   ├── ☕ ImportExcel.java
-│       │               │   ├── ☕ Reporting.java
-│       │               │   ├── ☕ Responsable.java
-│       │               │   ├── ☕ Role.java
-│       │               │   ├── ☕ Secteur.java
-│       │               │   ├── ☕ Statut.java
-│       │               │   ├── ☕ Udm.java
-│       │               │   ├── ☕ Utilisateur.java
 │       │               │   └── 🖼️ file.png
 │       │               ├── 📁 dto
 │       │               │   ├── ☕ ChangePasswordDto.java
@@ -119,11 +113,23 @@
 │       │               │   ├── ☕ ReportingDto.java
 │       │               │   ├── ☕ ReportingStatisticsDto.java
 │       │               │   └── ☕ UtilisateurDto.java
+│       │               ├── 📁 entity
+│       │               │   ├── ☕ Historique.java
+│       │               │   ├── ☕ ImportExcel.java
+│       │               │   ├── ☕ Reporting.java
+│       │               │   ├── ☕ Responsable.java
+│       │               │   ├── ☕ Role.java
+│       │               │   ├── ☕ Secteur.java
+│       │               │   ├── ☕ Statut.java
+│       │               │   ├── ☕ Udm.java
+│       │               │   └── ☕ Utilisateur.java
+│       │               ├── 📁 exception
 │       │               ├── 📁 repository
 │       │               │   ├── ☕ HistoriqueRepository.java
 │       │               │   ├── ☕ ImportExcelRepository.java
 │       │               │   ├── ☕ ReportingRepository.java
 │       │               │   └── ☕ UtilisateurRepository.java
+│       │               ├── 📁 security
 │       │               ├── 📁 service
 │       │               │   ├── ☕ HistoriqueService.java
 │       │               │   ├── ☕ ImportExcelService.java
@@ -150,10 +156,12 @@
 ├── ⚙️ .gitattributes
 ├── ⚙️ .gitignore
 ├── 📝 Untitled-2.md
+├── 📝 Untitled-6.md
 ├── 📘 jhp.docx
 ├── 📄 mvnw
 ├── 📄 mvnw.cmd
-└── ⚙️ pom.xml
+├── ⚙️ pom.xml
+└── 📘 ~$jhp.docx
 ```
 
 ---

@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import userService from '../../services/userService';
 import type { ProfileUpdatePayload } from '../../types/user';
-import Alert from '../../components/ui/Alert';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+import Alert from '../../components/common/Alert';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
 
 interface ProfileForm {
   nom: string;
@@ -107,19 +107,19 @@ const ProfilePage: React.FC = () => {
               label="Nom"
               type="text"
               value={profile.nom}
-              onChange={(event) => setProfile({ ...profile, nom: event.target.value })}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, nom: event.target.value })}
             />
             <Input
               label="Prénom"
               type="text"
               value={profile.prenom}
-              onChange={(event) => setProfile({ ...profile, prenom: event.target.value })}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, prenom: event.target.value })}
             />
             <Input
               label="Email"
               type="email"
               value={profile.email}
-              onChange={(event) => setProfile({ ...profile, email: event.target.value })}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, email: event.target.value })}
             />
             <div className="ui-form-actions" style={{ gridColumn: '1 / -1' }}>
               <Button type="submit" variant="primary" disabled={loading}>
@@ -136,19 +136,19 @@ const ProfilePage: React.FC = () => {
               label="Mot de passe actuel"
               type="password"
               value={password.currentPassword}
-              onChange={(event) => setPassword({ ...password, currentPassword: event.target.value })}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword({ ...password, currentPassword: event.target.value })}
             />
             <Input
               label="Nouveau mot de passe"
               type="password"
               value={password.newPassword}
-              onChange={(event) => setPassword({ ...password, newPassword: event.target.value })}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword({ ...password, newPassword: event.target.value })}
             />
             <Input
               label="Confirmer le mot de passe"
               type="password"
               value={password.confirmPassword}
-              onChange={(event) => setPassword({ ...password, confirmPassword: event.target.value })}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword({ ...password, confirmPassword: event.target.value })}
             />
             <div className="ui-form-actions" style={{ gridColumn: '1 / -1' }}>
               <Button type="submit" variant="secondary" disabled={loading}>

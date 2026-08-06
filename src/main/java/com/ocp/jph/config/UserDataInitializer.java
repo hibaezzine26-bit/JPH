@@ -4,9 +4,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.ocp.jph.domain.Responsable;
-import com.ocp.jph.domain.Role;
-import com.ocp.jph.domain.Utilisateur;
+import com.ocp.jph.entity.Responsable;
+import com.ocp.jph.entity.Role;
+import com.ocp.jph.entity.Utilisateur;
 import com.ocp.jph.repository.ReportingRepository;
 import com.ocp.jph.repository.UtilisateurRepository;
 

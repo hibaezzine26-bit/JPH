@@ -1,4 +1,4 @@
-package com.ocp.jph.domain;
+package com.ocp.jph.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

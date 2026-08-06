@@ -3,13 +3,13 @@ import { AxiosError } from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import reportingService from '../../services/reportingService';
 import type { ReportingDto } from '../../types/reporting';
-import Alert from '../../components/ui/Alert';
-import SearchBar from '../../components/ui/SearchBar';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
-import Input from '../../components/ui/Input';
-import SectionHeading from '../../components/ui/SectionHeading';
+import Alert from '../../components/common/Alert';
+import SearchBar from '../../components/common/SearchBar';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
+import Badge from '../../components/common/Badge';
+import Input from '../../components/common/Input';
+import SectionHeading from '../../components/common/SectionHeading';
 import ReportingTable from '../../components/reporting/ReportingTable';
 import { getReportingColumnsByRole } from '../../utils/reportingColumns';
 
@@ -301,7 +301,7 @@ const ReportingPage: React.FC = () => {
             <label>Rechercher</label>
             <SearchBar
               value={filters.search}
-              onChange={(value) => setFilters({ ...filters, search: value })}
+              onChange={(value: string) => setFilters({ ...filters, search: value })}
               placeholder="Rechercher par DA, commande ou fournisseur"
             />
           </div>
@@ -379,35 +379,35 @@ const ReportingPage: React.FC = () => {
               <Input
                 label="DA"
                 value={editingReporting.numeroDA}
-                onChange={(event) => updateEditingField('numeroDA', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('numeroDA', event.target.value)}
               />
             </div>
             <div className="ui-form-group">
               <Input
                 label="Dossier"
                 value={editingReporting.numeroDossier}
-                onChange={(event) => updateEditingField('numeroDossier', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('numeroDossier', event.target.value)}
               />
             </div>
             <div className="ui-form-group">
               <Input
                 label="N°"
                 value={editingReporting.numero}
-                onChange={(event) => updateEditingField('numero', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('numero', event.target.value)}
               />
             </div>
             <div className="ui-form-group">
               <Input
                 label="Code Oracle"
                 value={editingReporting.codeOracle}
-                onChange={(event) => updateEditingField('codeOracle', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('codeOracle', event.target.value)}
               />
             </div>
             <div className="ui-form-group">
               <Input
                 label="Code SAP"
                 value={editingReporting.codeSAP}
-                onChange={(event) => updateEditingField('codeSAP', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('codeSAP', event.target.value)}
               />
             </div>
             <div className="ui-form-group" style={{ gridColumn: '1 / -1' }}>
@@ -438,7 +438,7 @@ const ReportingPage: React.FC = () => {
                 label="Quantité"
                 type="number"
                 value={editingReporting.quantite ?? ''}
-                onChange={(event) => updateEditingField('quantite', event.target.value ? parseFloat(event.target.value) : null)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('quantite', event.target.value ? parseFloat(event.target.value) : null)}
               />
             </div>
             <div className="ui-form-group">
@@ -459,14 +459,14 @@ const ReportingPage: React.FC = () => {
               <Input
                 label="CMD"
                 value={editingReporting.commande}
-                onChange={(event) => updateEditingField('commande', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('commande', event.target.value)}
               />
             </div>
             <div className="ui-form-group">
               <Input
                 label="Fournisseur"
                 value={editingReporting.fournisseur}
-                onChange={(event) => updateEditingField('fournisseur', event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('fournisseur', event.target.value)}
               />
             </div>
             <div className="ui-form-group">
@@ -474,7 +474,7 @@ const ReportingPage: React.FC = () => {
                 label="% Livraison"
                 type="number"
                 value={editingReporting.pourcentageLivraison ?? ''}
-                onChange={(event) => updateEditingField('pourcentageLivraison', event.target.value ? parseInt(event.target.value, 10) : null)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('pourcentageLivraison', event.target.value ? parseInt(event.target.value, 10) : null)}
               />
             </div>
             <div className="ui-form-group">
@@ -482,7 +482,7 @@ const ReportingPage: React.FC = () => {
                 label="Délai livraison"
                 type="number"
                 value={editingReporting.delaiLivraison ?? ''}
-                onChange={(event) => updateEditingField('delaiLivraison', event.target.value ? parseInt(event.target.value, 10) : null)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('delaiLivraison', event.target.value ? parseInt(event.target.value, 10) : null)}
               />
             </div>
             <div className="ui-form-group">
@@ -536,7 +536,7 @@ const ReportingPage: React.FC = () => {
                 label="Utilisateur ID"
                 type="number"
                 value={editingReporting.utilisateurId ?? ''}
-                onChange={(event) => updateEditingField('utilisateurId', event.target.value ? parseInt(event.target.value, 10) : null)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => updateEditingField('utilisateurId', event.target.value ? parseInt(event.target.value, 10) : null)}
               />
             </div>
             <div className="ui-form-group" style={{ gridColumn: '1 / -1' }}>

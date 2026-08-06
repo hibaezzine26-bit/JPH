@@ -2,8 +2,8 @@ package com.ocp.jph.web.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.ocp.jph.domain.ImportExcel;
 import com.ocp.jph.dto.ImportExcelDto;
+import com.ocp.jph.entity.ImportExcel;
 
 @Component
 public class ImportExcelMapper {

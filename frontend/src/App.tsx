@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
-import Loading from './components/ui/Loading';
+import Loading from './components/common/Loading';
 
 const App: React.FC = () => {
   const { user, loading } = useAuth();

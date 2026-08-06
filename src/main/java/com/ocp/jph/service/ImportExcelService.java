@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.ocp.jph.domain.ImportExcel;
+import com.ocp.jph.entity.ImportExcel;
 import com.ocp.jph.repository.ImportExcelRepository;
 
 @Service

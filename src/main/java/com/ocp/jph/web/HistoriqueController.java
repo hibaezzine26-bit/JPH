@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ocp.jph.domain.Historique;
 import com.ocp.jph.dto.HistoriqueDto;
+import com.ocp.jph.entity.Historique;
 import com.ocp.jph.service.HistoriqueService;
 import com.ocp.jph.web.mapper.HistoriqueMapper;
 

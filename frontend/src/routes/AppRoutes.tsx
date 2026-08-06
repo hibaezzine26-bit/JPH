@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Layout from '../components/layout/Layout';
-import Loader from '../components/ui/Loader';
+import Loader from '../components/common/Loader';
 import { RoutePaths } from './paths';
 
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'));

@@ -29,8 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const authHeader = localStorage.getItem('auth');
-    if (authHeader) {
+    const token = localStorage.getItem('authToken');
+    if (token) {
       fetchCurrentUser();
     } else {
       setLoading(false);
@@ -38,8 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, mdp: string) => {
-    const authHeader = btoa(`${email}:${mdp}`);
-    const response = await authService.login(authHeader);
+    await authService.login(email, mdp);
+    const response = await authService.getCurrentUser();
     setUser(response.data);
   };
 

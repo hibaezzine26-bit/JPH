@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.ocp.jph.domain.Reporting;
-import com.ocp.jph.domain.Utilisateur;
 import com.ocp.jph.dto.ReportingDto;
+import com.ocp.jph.entity.Reporting;
+import com.ocp.jph.entity.Utilisateur;
 
 @Component
 public class ReportingMapper {

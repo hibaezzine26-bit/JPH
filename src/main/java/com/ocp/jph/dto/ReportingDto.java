@@ -3,10 +3,10 @@ package com.ocp.jph.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.ocp.jph.domain.Responsable;
-import com.ocp.jph.domain.Secteur;
-import com.ocp.jph.domain.Statut;
-import com.ocp.jph.domain.Udm;
+import com.ocp.jph.entity.Responsable;
+import com.ocp.jph.entity.Secteur;
+import com.ocp.jph.entity.Statut;
+import com.ocp.jph.entity.Udm;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

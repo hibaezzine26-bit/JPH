@@ -1,4 +1,4 @@
-package com.ocp.jph.domain;
+package com.ocp.jph.entity;
 
 public enum Secteur {
     AMMONIAC,

@@ -1,6 +1,6 @@
 package com.ocp.jph.dto;
 
-import com.ocp.jph.domain.Role;
+import com.ocp.jph.entity.Role;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.ocp.jph.domain.Utilisateur;
+import com.ocp.jph.entity.Utilisateur;
 import com.ocp.jph.repository.UtilisateurRepository;
 
 @Service

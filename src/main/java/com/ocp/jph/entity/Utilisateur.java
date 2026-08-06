@@ -1,4 +1,4 @@
-package com.ocp.jph.domain;
+package com.ocp.jph.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

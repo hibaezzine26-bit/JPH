@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ocp.jph.domain.Reporting;
-import com.ocp.jph.domain.Responsable;
-import com.ocp.jph.domain.Secteur;
-import com.ocp.jph.domain.Statut;
 import com.ocp.jph.dto.HistoriqueDto;
 import com.ocp.jph.dto.ImportResultDto;
 import com.ocp.jph.dto.ReportingDto;
 import com.ocp.jph.dto.ReportingStatisticsDto;
+import com.ocp.jph.entity.Reporting;
+import com.ocp.jph.entity.Responsable;
+import com.ocp.jph.entity.Secteur;
+import com.ocp.jph.entity.Statut;
 import com.ocp.jph.service.HistoriqueService;
 import com.ocp.jph.service.ReportingService;
 import com.ocp.jph.web.mapper.HistoriqueMapper;

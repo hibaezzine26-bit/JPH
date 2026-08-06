@@ -2,8 +2,8 @@ package com.ocp.jph.web.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.ocp.jph.domain.Utilisateur;
 import com.ocp.jph.dto.UtilisateurDto;
+import com.ocp.jph.entity.Utilisateur;
 
 @Component
 public class UtilisateurMapper {

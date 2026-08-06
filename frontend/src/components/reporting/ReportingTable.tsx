@@ -1,7 +1,7 @@
 import React from 'react';
-import Table from '../ui/Table';
-import Button from '../ui/Button';
-import Loading from '../ui/Loading';
+import Table from '../common/Table';
+import Button from '../common/Button';
+import Loading from '../common/Loading';
 import type { ReportingDto } from '../../types/reporting';
 import type { ReportingColumn } from '../../utils/reportingColumns';
 import { getReportingCellValue } from '../../utils/reportingColumns';

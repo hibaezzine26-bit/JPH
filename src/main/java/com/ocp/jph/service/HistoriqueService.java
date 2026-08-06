@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.ocp.jph.domain.Historique;
+import com.ocp.jph.entity.Historique;
 import com.ocp.jph.repository.HistoriqueRepository;
 
 @Service
