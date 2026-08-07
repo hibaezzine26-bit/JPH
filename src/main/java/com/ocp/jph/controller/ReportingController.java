@@ -55,8 +55,9 @@ public class ReportingController {
             @RequestParam(required = false) Secteur secteur,
             @RequestParam(required = false) Responsable responsable,
             @RequestParam(required = false) String fournisseur,
+            @RequestParam(required = false) String commande,
             @RequestParam(required = false) String sort) {
-        return service.findAll(search, statut, secteur, responsable, fournisseur, sort).stream().map(mapper::toDto).toList();
+        return service.findAll(search, statut, secteur, responsable, fournisseur, commande, sort).stream().map(mapper::toDto).toList();
     }
 
     @GetMapping("/export")
@@ -66,10 +67,11 @@ public class ReportingController {
             @RequestParam(required = false) Secteur secteur,
             @RequestParam(required = false) Responsable responsable,
             @RequestParam(required = false) String fournisseur,
+            @RequestParam(required = false) String commande,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false, defaultValue = "xlsx") String format) throws IOException {
         if ("csv".equalsIgnoreCase(format)) {
-            String csv = service.export(search, statut, secteur, responsable, fournisseur, sort);
+            String csv = service.export(search, statut, secteur, responsable, fournisseur, commande, sort);
             // Add UTF-8 BOM so Excel detects UTF-8 correctly
             byte[] bom = new byte[] {(byte)0xEF, (byte)0xBB, (byte)0xBF};
             byte[] csvBytes = csv.getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -81,7 +83,7 @@ public class ReportingController {
                     .header("Content-Disposition", "attachment; filename=reportings.csv")
                     .body(payload);
         } else {
-            byte[] excelFile = service.exportToExcel(search, statut, secteur, responsable, fournisseur, sort);
+            byte[] excelFile = service.exportToExcel(search, statut, secteur, responsable, fournisseur, commande, sort);
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                     .header("Content-Disposition", "attachment; filename=reportings.xlsx")

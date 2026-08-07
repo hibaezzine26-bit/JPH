@@ -11,7 +11,7 @@ import ocpLogo from '../../assets/ocp-logo.png';
 
 interface MenuItem {
   label: string;
-  path?: string;
+  path: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
@@ -25,22 +25,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isConsultant }) => {
   const menuItems: MenuItem[] = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Reporting', path: '/reporting', icon: BarChart3 },
-    { label: 'Import Excel', path: '/import', icon: FileSpreadsheet },
+    { label: 'Importer Excel', path: '/import', icon: FileSpreadsheet },
     { label: 'Historique', path: '/historique', icon: History },
     { label: 'Profil', path: '/profile', icon: User },
   ];
 
-  const visibleItems = isConsultant ? menuItems.filter((item) => item.path !== '/import' && item.path !== '/reporting' && item.path !== '/historique') : menuItems;
+  const visibleItems = isConsultant
+    ? menuItems.filter((item) => item.path === '/' || item.path === '/profile')
+    : menuItems;
 
   return (
     <aside className="app-sidebar">
       <div className="app-sidebar__brand">
         <div className="app-sidebar__logo">
-          <img src={ocpLogo} alt="OCP" />
+          <img src={ocpLogo} alt="OCP Logo" />
         </div>
         <div className="app-sidebar__brand-text">
-          <span>OCP</span>
-          <strong>JPH</strong>
+          <span>GROUPE OCP</span>
+          <strong>JPH - PDR</strong>
         </div>
       </div>
 
@@ -51,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isConsultant }) => {
           return (
             <Link
               key={item.label}
-              to={item.path ?? '#'}
+              to={item.path}
               className={`app-sidebar__item ${active ? 'active' : ''}`}
             >
               <Icon size={18} className="app-sidebar__item-icon" />
@@ -60,7 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isConsultant }) => {
           );
         })}
       </nav>
-
     </aside>
   );
 };

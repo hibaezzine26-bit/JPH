@@ -4,8 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import userService from '../../services/userService';
 import type { ProfileUpdatePayload } from '../../types/user';
 import Alert from '../../components/common/Alert';
-import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
+import { User, Lock, Save, Shield, Key } from 'lucide-react';
 
 interface ProfileForm {
   nom: string;
@@ -57,7 +56,7 @@ const ProfilePage: React.FC = () => {
         }
         updateUser(response.data);
       }
-      setMessage('Profil mis à jour avec succès.');
+      setMessage('Informations du profil mises à jour avec succès.');
     } catch (err) {
       setError('Impossible de mettre à jour le profil.');
     } finally {
@@ -93,70 +92,132 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="ui-page">
-      <div className="ui-card">
-        <div>
-          <h2 className="h5" style={{ marginBottom: 16 }}>
-            Mon profil
-          </h2>
-          {message && <Alert variant="success">{message}</Alert>}
-          {error && <Alert variant="danger">{error}</Alert>}
+    <div className="app-content" style={{ maxWidth: '840px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--ocp-text)' }}>Profil Utilisateur</h2>
+        <p style={{ fontSize: '13px', color: 'var(--ocp-text-muted)', marginTop: '2px' }}>
+          Gérez vos informations personnelles, votre rôle et votre mot de passe d'accès.
+        </p>
+      </div>
 
-          <form onSubmit={handleProfileSave} className="ui-grid ui-grid--2" style={{ gap: 16, marginBottom: 24 }}>
-            <Input
-              label="Nom"
-              type="text"
-              value={profile.nom}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, nom: event.target.value })}
-            />
-            <Input
-              label="Prénom"
-              type="text"
-              value={profile.prenom}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, prenom: event.target.value })}
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={profile.email}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, email: event.target.value })}
-            />
-            <div className="ui-form-actions" style={{ gridColumn: '1 / -1' }}>
-              <Button type="submit" variant="primary" disabled={loading}>
-                {loading ? 'Enregistrement...' : 'Enregistrer le profil'}
-              </Button>
-            </div>
-          </form>
+      {message && <Alert variant="success">{message}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-          <h2 className="h5" style={{ marginBottom: 16 }}>
-            Changer le mot de passe
-          </h2>
-          <form onSubmit={handlePasswordSave} className="ui-grid ui-grid--3" style={{ gap: 16 }}>
-            <Input
-              label="Mot de passe actuel"
-              type="password"
-              value={password.currentPassword}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword({ ...password, currentPassword: event.target.value })}
-            />
-            <Input
-              label="Nouveau mot de passe"
-              type="password"
-              value={password.newPassword}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword({ ...password, newPassword: event.target.value })}
-            />
-            <Input
-              label="Confirmer le mot de passe"
-              type="password"
-              value={password.confirmPassword}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword({ ...password, confirmPassword: event.target.value })}
-            />
-            <div className="ui-form-actions" style={{ gridColumn: '1 / -1' }}>
-              <Button type="submit" variant="secondary" disabled={loading}>
-                {loading ? 'Enregistrement...' : 'Modifier le mot de passe'}
-              </Button>
-            </div>
-          </form>
+      <div className="card-ocp" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div className="app-navbar__avatar" style={{ width: '64px', height: '64px', fontSize: '24px' }}>
+          {user?.nom ? user.nom.charAt(0).toUpperCase() : 'U'}
         </div>
+        <div>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ocp-text)' }}>
+            {user?.prenom} {user?.nom}
+          </h3>
+          <div style={{ fontSize: '13px', color: 'var(--ocp-text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span>{user?.email}</span>
+            <span className="badge-ocp badge-ocp--livre">
+              <Shield size={12} />
+              {user?.role ? user.role.replace('ROLE_', '') : 'UTILISATEUR'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="card-ocp">
+        <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ocp-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <User size={18} />
+          Informations Personnelles
+        </h3>
+
+        <form onSubmit={handleProfileSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="form-grid-2">
+            <div className="form-group-ocp">
+              <label>Nom</label>
+              <input
+                type="text"
+                className="form-control-ocp"
+                value={profile.nom}
+                onChange={(e) => setProfile({ ...profile, nom: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group-ocp">
+              <label>Prénom</label>
+              <input
+                type="text"
+                className="form-control-ocp"
+                value={profile.prenom}
+                onChange={(e) => setProfile({ ...profile, prenom: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group-ocp" style={{ gridColumn: '1 / -1' }}>
+              <label>Adresse Email</label>
+              <input
+                type="email"
+                className="form-control-ocp"
+                value={profile.email}
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <button type="submit" className="btn-ocp btn-ocp-primary" disabled={loading}>
+              <Save size={16} />
+              <span>Enregistrer le Profil</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="card-ocp">
+        <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ocp-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Key size={18} />
+          Sécurité & Mot de passe
+        </h3>
+
+        <form onSubmit={handlePasswordSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="form-group-ocp">
+            <label>Mot de passe actuel</label>
+            <input
+              type="password"
+              className="form-control-ocp"
+              value={password.currentPassword}
+              onChange={(e) => setPassword({ ...password, currentPassword: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-grid-2">
+            <div className="form-group-ocp">
+              <label>Nouveau mot de passe</label>
+              <input
+                type="password"
+                className="form-control-ocp"
+                value={password.newPassword}
+                onChange={(e) => setPassword({ ...password, newPassword: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group-ocp">
+              <label>Confirmer le nouveau mot de passe</label>
+              <input
+                type="password"
+                className="form-control-ocp"
+                value={password.confirmPassword}
+                onChange={(e) => setPassword({ ...password, confirmPassword: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <button type="submit" className="btn-ocp btn-ocp-primary" disabled={loading}>
+              <Lock size={16} />
+              <span>Changer le Mot de passe</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import historiqueService from '../../services/historiqueService';
+import Badge from '../../components/common/Badge';
+import Loader from '../../components/common/Loader';
+import { History, Calendar, FileText } from 'lucide-react';
 
 interface HistoriqueDto {
   id: number;
@@ -19,6 +22,8 @@ const HistoriquePage: React.FC = () => {
     try {
       const response = await historiqueService.getAll();
       setHistoriques(response.data);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -29,60 +34,77 @@ const HistoriquePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="ui-page">
-      <div className="ui-card" style={{ marginBottom: 24 }}>
-        <div className="ui-toolbar" style={{ alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-          <div>
-            <p className="ui-form-group__label" style={{ textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-              Historique
-            </p>
-            <h1 className="h4" style={{ margin: 0 }}>
-              Suivi des actions
-            </h1>
-          </div>
-          <span className="ui-badge ui-badge--default">{historiques.length} événements enregistrés</span>
+    <div className="app-content" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--ocp-text)' }}>Journal d'Audit & Historique</h2>
+          <p style={{ fontSize: '13px', color: 'var(--ocp-text-muted)', marginTop: '2px' }}>
+            Historique complet des modifications effectuées sur les dossiers et reportings.
+          </p>
         </div>
+        <Badge label={`${historiques.length} événement(s)`} variant="info" />
       </div>
 
-      <div className="ui-card">
-        <div className="app-table-responsive">
-          <table className="app-table app-table--striped">
-            <thead className="app-table__head">
-              <tr>
-                <th>Action</th>
-                <th>Ancienne valeur</th>
-                <th>Nouvelle valeur</th>
-                <th>Reporting</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="ui-text-center ui-text-muted" style={{ padding: '1rem 0' }}>
-                    Chargement...
-                  </td>
-                </tr>
-              ) : historiques.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="ui-text-center ui-text-muted" style={{ padding: '1rem 0' }}>
-                    Aucun historique trouvé.
-                  </td>
-                </tr>
-              ) : (
-                historiques.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.action}</td>
-                    <td>{item.ancienneValeur || '—'}</td>
-                    <td>{item.nouvelleValeur || '—'}</td>
-                    <td>{item.reportingId}</td>
-                    <td>{new Date(item.dateAction).toLocaleString()}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <div className="card-ocp" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <History size={18} color="var(--ocp-primary)" />
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ocp-text)' }}>Activités Récents</h3>
         </div>
+
+        {loading ? (
+          <Loader type="skeleton-table" rows={6} />
+        ) : (
+          <div className="table-responsive-ocp">
+            <table className="table-ocp">
+              <thead>
+                <tr>
+                  <th>Action</th>
+                  <th>Ancienne Valeur</th>
+                  <th>Nouvelle Valeur</th>
+                  <th>N° Reporting</th>
+                  <th>Date & Heure</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historiques.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: 'var(--ocp-text-muted)' }}>
+                      Aucun historique d'audit enregistré.
+                    </td>
+                  </tr>
+                ) : (
+                  historiques.map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        <span className="badge-ocp badge-ocp--encours">
+                          {item.action}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--ocp-danger)', fontWeight: 500 }}>
+                        {item.ancienneValeur || '—'}
+                      </td>
+                      <td style={{ color: 'var(--ocp-success)', fontWeight: 500 }}>
+                        {item.nouvelleValeur || '—'}
+                      </td>
+                      <td>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                          <FileText size={14} color="var(--ocp-primary)" />
+                          #{item.reportingId}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '12px', color: 'var(--ocp-text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Calendar size={13} />
+                          {item.dateAction ? new Date(item.dateAction).toLocaleString() : '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

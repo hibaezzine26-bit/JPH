@@ -51,18 +51,30 @@ public class ReportingService {
     }
 
     public List<Reporting> findAll(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String sort) {
-        return sortReportings(filterReportings(repo.findAll(), search, statut, secteur, responsable, fournisseur), sort);
+        return findAll(search, statut, secteur, responsable, fournisseur, null, sort);
+    }
+
+    public List<Reporting> findAll(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String commande, String sort) {
+        return sortReportings(filterReportings(repo.findAll(), search, statut, secteur, responsable, fournisseur, commande), sort);
     }
 
     public String export(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String sort) {
-        List<Reporting> reportings = findAll(search, statut, secteur, responsable, fournisseur, sort);
+        return export(search, statut, secteur, responsable, fournisseur, null, sort);
+    }
+
+    public String export(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String commande, String sort) {
+        List<Reporting> reportings = findAll(search, statut, secteur, responsable, fournisseur, commande, sort);
         String header = "N°,Code Oracle,Code SAP,Description,UDM,Quantité,Secteur,CMD,Fournisseur,% Livraison,Délai,Statut,Responsable,Commentaire";
         String rows = reportings.stream().map(this::toCsvLine).collect(Collectors.joining("\n"));
         return header + (rows.isEmpty() ? "" : "\n" + rows);
     }
 
     public byte[] exportToExcel(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String sort) throws IOException {
-        List<Reporting> reportings = findAll(search, statut, secteur, responsable, fournisseur, sort);
+        return exportToExcel(search, statut, secteur, responsable, fournisseur, null, sort);
+    }
+
+    public byte[] exportToExcel(String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String commande, String sort) throws IOException {
+        List<Reporting> reportings = findAll(search, statut, secteur, responsable, fournisseur, commande, sort);
         
         Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Reportings");
@@ -345,16 +357,10 @@ public class ReportingService {
         synonyms.put("LIVRE", "LIVRE");
 
         if (enumType == Statut.class) {
-            synonyms.put("LIVRE", "LIVRE");
+            synonyms.put("CONTENTIEUX", "LITIGE");
+            synonyms.put("CONTENTIEUSE", "LITIGE");
             synonyms.put("LIVRE", "LIVRE");
             synonyms.put("ARTICLE_ADJUGE", "ADJUGE");
-            synonyms.put("ARTICLE_ADJUGE", "ADJUGE");
-            synonyms.put("ARTICLE_ADJUGE", "ADJUGE");
-            synonyms.put("LIVRE", "LIVRE");
-            synonyms.put("LIVRE", "LIVRE");
-            synonyms.put("LIVRE", "LIVRE");
-            synonyms.put("LIVRER", "LIVRE");
-            synonyms.put("LIVRE", "LIVRE");
             synonyms.put("ARTICLES_ADJUGE", "ADJUGE");
         } else if (enumType == Udm.class) {
             synonyms.put("PIECE", "PIECE");
@@ -405,12 +411,13 @@ public class ReportingService {
         }
     }
 
-    private List<Reporting> filterReportings(List<Reporting> reportings, String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur) {
+    private List<Reporting> filterReportings(List<Reporting> reportings, String search, Statut statut, Secteur secteur, Responsable responsable, String fournisseur, String commande) {
         return reportings.stream()
                 .filter(reporting -> matchesStatut(reporting, statut))
                 .filter(reporting -> matchesSecteur(reporting, secteur))
                 .filter(reporting -> matchesResponsable(reporting, responsable))
                 .filter(reporting -> matchesFournisseur(reporting, fournisseur))
+                .filter(reporting -> matchesCommande(reporting, commande))
                 .filter(reporting -> matchesSearch(reporting, search))
                 .collect(Collectors.toList());
     }
@@ -448,7 +455,17 @@ public class ReportingService {
     }
 
     private boolean matchesFournisseur(Reporting reporting, String fournisseur) {
-        return fournisseur == null || fournisseur.isBlank() || reporting.getFournisseur() == null || reporting.getFournisseur().toLowerCase().contains(fournisseur.trim().toLowerCase());
+        if (fournisseur == null || fournisseur.isBlank()) {
+            return true;
+        }
+        return reporting.getFournisseur() != null && reporting.getFournisseur().toLowerCase().contains(fournisseur.trim().toLowerCase());
+    }
+
+    private boolean matchesCommande(Reporting reporting, String commande) {
+        if (commande == null || commande.isBlank()) {
+            return true;
+        }
+        return reporting.getCommande() != null && reporting.getCommande().toLowerCase().contains(commande.trim().toLowerCase());
     }
 
     private List<Reporting> sortReportings(List<Reporting> reportings, String sort) {
