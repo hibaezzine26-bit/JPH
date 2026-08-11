@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gitattributes
+.mvn
+target/
+frontend/node_modules/
+frontend/dist/
+frontend/.git
+*.md
+.idea/
+.vscode/
+mvnw
+mvnw.cmd
