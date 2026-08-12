@@ -25,30 +25,17 @@ public class UserDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Clear all reportings first (to avoid foreign key constraint violations)
-        System.out.println("🔄 UserDataInitializer START - Suppression de tous les reportings...");
-        reportingRepository.deleteAll();
-        System.out.println("✅ Tous les reportings supprimés");
-
-        // Then clear existing users
-        System.out.println("🔄 Suppression de tous les utilisateurs...");
-        utilisateurRepository.deleteAll();
-        System.out.println("✅ Tous les utilisateurs supprimés");
-
-        System.out.println("➕ Création des 4 administrateurs...");
+      
         for (Responsable responsable : Responsable.values()) {
             createAdmin(responsable, "admin123");
-            System.out.println("   ✓ Admin créé: " + responsable.name());
+          
         }
 
-        System.out.println("➕ Création des 3 consultants...");
+     
         createConsultant("Export", "export@jph.local", "export123");
-        System.out.println("   ✓ Consultant créé: export@jph.local");
         createConsultant("Soufre", "soufre@jph.local", "soufre123");
-        System.out.println("   ✓ Consultant créé: soufre@jph.local");
         createConsultant("Ammoniac", "ammoniac@jph.local", "ammoniac123");
-        System.out.println("   ✓ Consultant créé: ammoniac@jph.local");
-        System.out.println("✅ UserDataInitializer TERMINÉ - 7 utilisateurs créés");
+      
     }
 
     private void createAdmin(Responsable responsable, String password) {
