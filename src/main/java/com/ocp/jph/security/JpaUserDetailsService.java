@@ -24,7 +24,7 @@ public class JpaUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Utilisateur utilisateur = utilisateurRepository.findByEmail(username)
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(username.toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable: " + username));
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + utilisateur.getRole().name());

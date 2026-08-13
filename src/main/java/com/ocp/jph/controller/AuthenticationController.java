@@ -33,7 +33,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> payload) {
-        String email = payload.get("email");
+        String email = payload.get("email") != null ? payload.get("email").toLowerCase() : "";
         String password = payload.get("password");
 
         Authentication authentication = authenticationManager.authenticate(
